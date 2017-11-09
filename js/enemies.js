@@ -5,7 +5,8 @@ function Enemy() {
 	this.v = 0
 	this.dir = 0
 	this.facingDir = 0
-	this.hp = 2
+	this.hp = 10;
+    this.hpMax = 10;
 	this.turnrate = 1
 	this.init = function(x, y) {
 		this.x = x || W / 2
@@ -17,13 +18,6 @@ function Enemy() {
 		dts = dt / 1000 * 16 || 1
 		//var acc = 5
 			//friction
-		this.v *= Math.pow(0.95, 1 + dts)
-		if (Math.abs(this.v) < 0.1)
-			this.v = 0
-
-		//movement physics
-		vx = this.v * Math.cos(this.dir)
-		vy = this.v * Math.sin(this.dir)
 
 		//turning
 		targetDir = Math.atan2(-this.y + game.player.y, -this.x + game.player.x)
@@ -56,28 +50,9 @@ function Enemy() {
 		this.v = Math.sqrt(vx * vx + vy * vy)
 	}
 
-	this.damage = function(damage) {
-		this.hp -= damage
-		game.misc.push(new PopupText(this.x, this.y, damage.toFixed(2)))
-		if (this.hp <= 0) {
-			this.toRemove = true
-		}
-	}
-
-	this.knockback = function(force, direction) {
-		vx = this.v * Math.cos(this.dir)
-		vy = this.v * Math.sin(this.dir)
-
-		ax = force * Math.cos(direction)
-		ay = force * Math.sin(direction)
-		vx += ax
-		vy += ay
-
-		this.dir = Math.atan2(vy, vx)
-		this.v = Math.sqrt(vx * vx + vy * vy)
-	}
-
+    this.erender = this.render;
 	this.render = function() {
+        this.erender();
 		ctx.strokeStyle = "red";
 		ctx.beginPath();
 		ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);

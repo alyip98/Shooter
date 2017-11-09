@@ -1,9 +1,6 @@
 
 function Player() {
 	Entity.call(this);
-	this.size = 32
-	this.v = 0
-	this.dir = 0
 	this.shootDir = 0
 	this.attackCD = 1000
 	this.attackCDcurr = 0
@@ -20,71 +17,41 @@ function Player() {
 		//Entity.tick.call(this, dt);
         this.etick(dt);
 		dts = dt / 1000 * 16
-		//var acc = 5
-			//friction
-		this.v *= Math.pow(0.9, 1 + dts)
-		if (Math.abs(this.v) < 0.1)
-			this.v = 0
 
-		//movement physics
-		vx = this.v * Math.cos(this.dir)
-		vy = this.v * Math.sin(this.dir)
+		this.shootDir = Math.atan2(my - this.y, mx - this.x);
 
-		this.x += vx * dts
-		this.y += vy * dts
-		this.shootDir = Math.atan2(my - this.y, mx - this.x)
-		dvx = 0
-		dvy = 0
-
-		if (keys["up"]) {
-			dvy -= 1
-		}
-
-		if (keys["down"]) {
-			dvy += 1
-		}
-
-		if (keys["left"]) {
-			dvx -= 1
-		}
-
-		if (keys["right"]) {
-			dvx += 1
-		}
+        //moving
+		dvx = 0;
+		dvy = 0;
+		if (keys["up"])       dvy -= 1;
+		if (keys["down"])     dvy += 1;
+		if (keys["left"])     dvx -= 1;
+		if (keys["right"])    dvx += 1;
 
 		//normalize dvx/y
 		if (dvx != 0 || dvy != 0) {
-			coeff = this.speed / Math.sqrt(dvx * dvx + dvy * dvy)
-			console.log(coeff, this.speed);
-			vx += dvx * coeff
-			vy += dvy * coeff
-			this.dir = Math.atan2(vy, vx)
-			this.v = Math.sqrt(vx * vx + vy * vy)
+            this.force(this.speed, Math.atan2(dvy, dvx));
 		}
 
 		//shooting
-		if (this.weapon.tick) this.weapon.tick(this, dt)
+		if (this.weapon.tick)
+            this.weapon.tick(this, dt);
+
 		if (keys["mouse"]) {
 			this.weapon.charge(this, dt)
-				//this.attackCDcurr-=dt
-				/*if(this.attackCDcurr<=0)
-				{
-					this.weapon.fire(this)
-					//fire projectile
-					this.attackCDcurr+=this.attackCD
-				}*/
 		} else {
-			this.weapon.release(this)
-				//this.attackCDcurr=Math.max(0,this.attackCDcurr-dt)
+			this.weapon.release(this);
 		}
 
 		//weapon special
 		if (this.weapon.special && keys["r"]) {
-			this.weapon.special(this)
+			this.weapon.special(this);
 		}
 	}
 
+    this.erender = this.render;
 	this.render = function() {
+        this.erender();
 		tmp = ctx.fillStyle
 		ctx.fillStyle = "white"
 		ctx.fillRect(this.x, this.y, 1, 1)

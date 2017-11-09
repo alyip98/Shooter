@@ -40,7 +40,7 @@ Weapons.Bow = {
 	currCharge: 0,
 	chargeMulti: 1,
 	charge: function(player, dt) {
-		player.addBuff(new Slow(0.8, 1));
+		//player.addBuff(new Slow(0.8, 1));
 		if (this.specialProjectileEnabled)
 			this.currCharge += dt / 2 * this.chargeMulti
 		else
@@ -254,7 +254,7 @@ Weapons.SplitBow = {
 	currCharge: 0,
 	chargeMulti: 1,
 	charge: function(player, dt) {
-		player.addBuff(new Slow(0.8, 1));
+		//player.addBuff(new Slow(0.8, 1));
 		if (this.specialProjectileEnabled)
 			this.currCharge += dt / 2 * this.chargeMulti
 		else

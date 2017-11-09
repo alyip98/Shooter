@@ -111,7 +111,7 @@ function Projectile(x, y, v, dir, owner) {
 			this.toRemove = true
 			this.penetrate = false
 		}
-		this.knockback = this.v * this.knockbackCoeff
+		this.knockback = Math.sqrt(this.v) * this.knockbackCoeff
 		thing.knockback(this.knockback, this.dir)
 		thing.damage(this.damage);
 	}
