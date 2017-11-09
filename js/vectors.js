@@ -26,6 +26,32 @@ function Vector(x, y) {
 	}
 }
 
+Vector.prototype.getLength = function(){
+    return this.len();
+}
+
+Vector.prototype.getAngle = function(v){
+    return Math.acos(this.dot(v)/(this.len()*v.len()));
+}
+
+Vector.prototype.getUnitVector = function(){
+	return this.mul(1/this.getLength());
+}
+
+Vector.prototype.getNormalVector = function(){
+	return new Vector(this.y*-1, this.x);
+}
+
+Vector.prototype.toPolar=function(){
+	this.length = this.getLength();
+	this.angle = Math.atan2(this.y, this.x);
+	return this;
+}
+
+function VP(len, ang){
+    return new Vector(Math.cos(ang) * len, Math.sin(ang) * len);
+}
+
 function V(x, y) {
 	return new Vector(x, y)
 }

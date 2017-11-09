@@ -104,4 +104,8 @@ function Entity(){
     this.getMaxHealth = function(){
         return this.hpMax;
     }
+
+    this.getCoords = function(){
+        return V(this.x, this.y);
+    }
 }

@@ -175,7 +175,6 @@ Weapons.Shotgun = {
 			this.cd = this.maxCD
 			if (this.ammo == 0) {
 				this.special(player)
-
 			}
 		}
 	},
@@ -280,4 +279,95 @@ Weapons.SplitBow = {
 		}
 	}
 
+}
+
+Weapons.Tesla = {
+    name: "Tesla Gun",
+    damage: 0.05,
+    type: "gun",
+    element: "lightning",
+    range: 400,
+    angle: Math.PI/4,
+    bolts:[],
+    cd:0,
+    maxCD: 0,
+    knockbackCoeff:1,
+    hitLastTick:0,
+    damageAmp:0,
+    tick: function(player, dt){
+        this.cd-=dt;
+        if(this.cd<=0){
+            this.bolts = [];
+        }
+        if(this.cd<-this.maxCD * 2){
+            this.hitLastTick = 0;
+        }
+
+        if(this.hitLastTick === 0){
+            this.damageAmp = Math.max(this.damageAmp - dt/100, 0);
+        }
+    },
+
+    charge: function(player){
+        if(this.cd>0){return;} else {
+            this.cd = this.maxCD;
+        }
+        var enemies = game.enemies;
+        var hitEnemies = [];
+        var aimVector = VP(this.range, player.shootDir);
+        var pv = V(player.x, player.y);
+        this.hitLastTick = 0;
+        for(var i = 0;i<enemies.length;i++){
+            var enemy = enemies[i];
+            var ev = V(enemy.x, enemy.y);
+            var angle = ev.sub(pv).getAngle(aimVector);
+            var dist = ev.sub(pv).len();
+            console.log(angle, dist);
+            if(angle<this.angle && dist <= this.range){
+                this.fire(player, enemy);
+                this.hitLastTick++;
+            }
+        }
+
+        if(this.hitLastTick>0){
+            this.damageAmp ++;
+        }
+    },
+
+    fire: function(player, enemy){
+        this.bolts.push(new Lightning(player.getCoords(), enemy.getCoords(), 10));
+        enemy.damage(this.damage * this.damageAmp * 1/5);
+        enemy.knockback(this.knockbackCoeff, Math.random()*Math.PI*2);
+    },
+
+    release: function(player){
+
+    },
+
+    render: function(player){
+        if (this.damageAmp > 0) {
+			ctx.beginPath()
+			ctx.arc(player.x, player.y, player.size / 2 * Math.min(this.damageAmp, 50)/50, 0, Math.PI * 2);
+			ctx.closePath()
+			ctx.fill()
+		}
+
+        if(this.bolts.length>0){
+            ctx.beginPath();
+            for(var i=0;i<this.bolts.length;i++){
+                console.log(this.bolts[i]);
+                this.bolts[i].draw();
+            }
+            ctx.closePath();
+            ctx.stroke();
+        } else {
+            var length = 50;
+            var sd = VP(length, player.shootDir);
+            var nd = sd.getNormalVector().mul((Math.random()-0.5)/4);
+            var b = new Lightning(player.getCoords(), player.getCoords().add(sd.mul(Math.random())).add(nd), 10);
+            ctx.beginPath();
+            b.draw();
+            ctx.stroke();
+        }
+    }
 }

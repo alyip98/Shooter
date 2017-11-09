@@ -81,7 +81,8 @@ function newGame() {
 				game.player.weapon = Weapons.Shotgun;
 			if (keys["4"])
 				game.player.weapon = Weapons.SplitBow;
-
+			if (keys["5"])
+				game.player.weapon = Weapons.Tesla;
 			//tick player
 			game.player.tick(dt)
 
@@ -114,7 +115,7 @@ function newGame() {
 
 			if (game.counter % 100 == 0) {
 				//spawn enemy
-				spawnEnemy()
+				//spawnEnemy()
 			}
 
 			if (keys.spawn && Date.now() > game.timeToNextSpawn) {
@@ -173,34 +174,6 @@ function spawnEnemy() {
 }
 
 Weapons = {}
-
-function PPT(x, y, text) {
-	game.misc.push(new PopupText(x, y, text));
-}
-
-function PopupText(x, y, text) {
-	this.x = x
-	this.y = y
-	this.text = text
-	this.lifetime = 0
-	this.decayTime = 3000
-	this.fillStyle = "white"
-	this.tick = function(dt) {
-		this.y -= 50 * dt / this.decayTime
-		this.lifetime += dt
-		if (this.lifetime > this.decayTime)
-			this.toRemove = true
-	}
-
-	this.render = function() {
-		tmp = ctx.fillStyle
-		ctx.fillStyle = this.fillStyle
-		ctx.globalAlpha = 1 - (this.lifetime / this.decayTime)
-		ctx.fillText(this.text, this.x, this.y)
-		ctx.fillStyle = tmp
-		ctx.globalAlpha = 1
-	}
-}
 
 function getKeyDefs(key) {
 	if (keyDefs[key])
