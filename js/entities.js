@@ -17,10 +17,11 @@ function Entity(){
 			}
 		}
 	}
-}
 
-Entity.tick = function(dt){
-	for(var i=0;i<this.buffs.length;i++){
-		this.buffs[i].tick(dt);
-	}
+    this.tick = function(dt){
+    	for(var i=0;i<this.buffs.length;i++){
+    		this.buffs[i].tick(dt);
+    	}
+    }
+
 }

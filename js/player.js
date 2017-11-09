@@ -15,8 +15,10 @@ function Player() {
 		this.y = y || H / 2
 	}
 
+    this.etick = this.tick;
 	this.tick = function(dt) {
-		Entity.tick.call(this, dt);
+		//Entity.tick.call(this, dt);
+        this.etick(dt);
 		dts = dt / 1000 * 16
 		//var acc = 5
 			//friction

@@ -8,6 +8,7 @@ Obstacles
 Buff stacking
 Talents
 Loot/Items
+Add new enemy type
 
 
 */
