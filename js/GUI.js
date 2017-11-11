@@ -81,22 +81,33 @@ function DamageText(obj){
 
     this.tick = function(dt){
         var dhp = obj.getHealth() - this.prevHP;
+        //console.log(dhp);
         if(dhp<0){
             this.hidden = false;
+            if(this.timeout<0)
+                this.startHP = this.prevHP;
             this.timeout = 1000;
-            this.startHP = this.prevHP;
             this.text = this.startHP - obj.getHealth();
+        } else {
+            this.timeout -= dt;
+            if(this.timeout<=0){
+                this.hidden = true;
+            }
         }
+        this.prevHP = obj.getHealth();
     }
 
     this.render = function(){
+        //console.log(this);
         if(!this.hidden){
-            ctx.fillText(this.getText(), this.x, this.y);
+            ctx.fillStyle = "white";
+            //console.log(this);
+            ctx.fillText(this.getText(), this.boundObject.x + this.offsetX, this.boundObject.y + this.offsetY);
         }
     }
 
     this.getText = function(){
-        return this.startHP - obj.getHealth();
+        return (this.startHP - obj.getHealth()).toFixed(2);
     }
 }
 

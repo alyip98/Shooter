@@ -283,28 +283,30 @@ Weapons.SplitBow = {
 
 Weapons.Tesla = {
     name: "Tesla Gun",
-    damage: 0.05,
+    damage: 0.01,
     type: "gun",
     element: "lightning",
     range: 400,
-    angle: Math.PI/4,
+    angle: Math.PI/8,
     bolts:[],
     cd:0,
     maxCD: 0,
     knockbackCoeff:1,
     hitLastTick:0,
     damageAmp:0,
+    maxTargets: 3,
     tick: function(player, dt){
         this.cd-=dt;
         if(this.cd<=0){
             this.bolts = [];
         }
-        if(this.cd<-this.maxCD * 2){
+
+        if(this.cd<-100){
             this.hitLastTick = 0;
         }
 
         if(this.hitLastTick === 0){
-            this.damageAmp = Math.max(this.damageAmp - dt/100, 0);
+            this.damageAmp = Math.max(this.damageAmp - dt/10, 0);
         }
     },
 
@@ -316,16 +318,25 @@ Weapons.Tesla = {
         var hitEnemies = [];
         var aimVector = VP(this.range, player.shootDir);
         var pv = V(player.x, player.y);
+        var candidates = [];
         this.hitLastTick = 0;
         for(var i = 0;i<enemies.length;i++){
             var enemy = enemies[i];
             var ev = V(enemy.x, enemy.y);
             var angle = ev.sub(pv).getAngle(aimVector);
             var dist = ev.sub(pv).len();
-            console.log(angle, dist);
+            //console.log(angle, dist);
             if(angle<this.angle && dist <= this.range){
-                this.fire(player, enemy);
+                candidates.push(enemy);
+                //this.fire(player, enemy);
                 this.hitLastTick++;
+            }
+        }
+
+        if(candidates.length>0){
+            for(var i=0;i<this.maxTargets;i++){
+                var index = Math.floor(Math.random()*candidates.length);
+                this.fire(player, candidates[index]);
             }
         }
 
@@ -335,7 +346,7 @@ Weapons.Tesla = {
     },
 
     fire: function(player, enemy){
-        this.bolts.push(new Lightning(player.getCoords(), enemy.getCoords(), 10));
+        this.bolts.push(new Lightning(player.getCoords(), enemy.getCoords(), 10, 0.2));
         enemy.damage(this.damage * this.damageAmp * 1/5);
         enemy.knockback(this.knockbackCoeff, Math.random()*Math.PI*2);
     },
@@ -355,7 +366,7 @@ Weapons.Tesla = {
         if(this.bolts.length>0){
             ctx.beginPath();
             for(var i=0;i<this.bolts.length;i++){
-                console.log(this.bolts[i]);
+                //console.log(this.bolts[i]);
                 this.bolts[i].draw();
             }
             ctx.closePath();
@@ -364,7 +375,7 @@ Weapons.Tesla = {
             var length = 50;
             var sd = VP(length, player.shootDir);
             var nd = sd.getNormalVector().mul((Math.random()-0.5)/4);
-            var b = new Lightning(player.getCoords(), player.getCoords().add(sd.mul(Math.random())).add(nd), 10);
+            var b = new Lightning(player.getCoords(), player.getCoords().add(sd.mul(Math.random())).add(nd), 10, 10);
             ctx.beginPath();
             b.draw();
             ctx.stroke();

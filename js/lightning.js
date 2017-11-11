@@ -1,8 +1,12 @@
-function Lightning(start, end, resolution){
+function Lightning(start, end, resolution, forking){
 	this.start = start;
 	this.end = end;
 	this.resolution = resolution||10;
 	this.colour = "white";
+	this.forking = forking;
+	if(forking === undefined){
+		this.forking = 1;
+	}
 
 	this.sub = [];
 
@@ -33,10 +37,12 @@ function Lightning(start, end, resolution){
 			var np = dv.add(normal).add(this.start);
 			//console.log("np", np);
 			//console.log(this.start.y, np.y, this.end.y);
-			this.sub.push(new Lightning(this.start, np, resolution));
-			this.sub.push(new Lightning(np, this.end, resolution));
-			if(Math.random()>this.resolution/(length+1)+0.75){
-				this.sub.push(new Lightning(this.start, dv.add(normal.mul(5)).add(this.start), this.resolution));
+			this.sub.push(new Lightning(this.start, np, resolution, this.forking));
+			this.sub.push(new Lightning(np, this.end, resolution, this.forking));
+			if(this.forking>0){
+				if(Math.random()>(this.resolution/(length+1)+0.75) && Math.random()<this.forking){
+					this.sub.push(new Lightning(this.start, dv.add(normal.mul(5)).add(this.start), this.resolution, this.forking));
+				}
 			}
 		}
 	}

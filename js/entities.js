@@ -13,6 +13,8 @@ function Entity(){
     this.HPBar.height = this.size/16;
     this.HPBar.offsetY = this.size * -0.7;
 
+    this.dmgText = new DamageText(this);
+
 	this.addBuff = function(buff){
 		this.buffs.push(buff);
 		buff.owner = this;
@@ -44,15 +46,18 @@ function Entity(){
 
 		this.x += vx * dts
 		this.y += vy * dts
+
+        this.dmgText.tick(dt);
     }
 
     this.render = function(){
         this.HPBar.render();
+        this.dmgText.render();
     }
 
     this.damage = function(damage) {
 		this.hp -= damage
-		game.misc.push(new PopupText(this.x, this.y, damage.toFixed(2)))
+		//game.misc.push(new PopupText(this.x, this.y, damage.toFixed(2)))
 		if (this.hp <= 0) {
 			this.toRemove = true
 		}
