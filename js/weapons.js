@@ -7,29 +7,34 @@ Weapons.Bow = {
 	fire: function(player) {
 		var proj = new Projectile(player.x, player.y, 100 * this.currCharge / 1000, player.shootDir + (-0.5 + Math.random()) * Math.PI / 100, 1);
 		proj.damage = this.currCharge / 750 + 1;
+		proj.v = 700 * this.currCharge/this.maxCharge;
+		proj.fxn = 0.9;
+		proj.knockbackCoeff = 0.5;
 		if (this.currCharge >= this.maxCharge) {
 			proj.penetrate = true;
 			proj.hp = 3;
-			proj.v = 250;
-			proj.knockbackCoeff = 1;
 			if (this.specialProjectileEnabled) {
+				proj.damage = 0.2;
+				proj.knockbackCoeff = 1;
 				proj.hp = 10000;
-				proj.v = 300;
+				proj.v = 25;
 				proj.size = 150;
 				proj.fxn = 1;
 				proj.decayTime = 100000;
 				this.specialProjectileEnabled = false;
 			} else {
+				var pi = proj.impact;
 				proj.impact = function(thing) {
+					pi.call(this, thing);
 					this.v *= 0.5;
-					this.hp -= 1;
+					/*this.hp -= 1;
 					if (this.hp <= 0) {
 						this.toRemove = true;
 						this.penetrate = false;
 					}
 					this.knockback = this.v * this.knockbackCoeff;
 					thing.knockback(this.knockback, this.dir);
-					thing.damage(this.damage);
+					thing.damage(this.damage);*/
 				}
 			}
 		}
