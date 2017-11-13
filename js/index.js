@@ -15,32 +15,7 @@ Add new enemy type
 var game
 var W, H
 var mx, my
-var keys = {
-	"up": false,
-	"down": false,
-	"left": false,
-	"right": false,
-	"space": false,
-	"f": false,
-	"v": false,
-	"mouse": false,
-	"spawn": false
-}
 
-var keyDefs = {
-	"w": "up",
-	"ArrowUp": "up",
-	"a": "left",
-	"ArrowLeft": "left",
-	"s": "down",
-	"ArrowDown": "down",
-	"d": "right",
-	"ArrowRight": "right",
-	"f": "f",
-	"v": "v",
-	"e": "spawn",
-	"p": "p"
-}
 
 function init() {
 	W = window.innerWidth
@@ -54,6 +29,12 @@ function init() {
 
 	mx = W / 2
 	my = H / 2
+
+	window.onkeydown = keyDownHandler
+	window.onkeyup = keyUpHandler
+	window.onmousemove = mouseMoveHandler
+	window.onmousedown = mouseDownHandler
+	window.onmouseup = mouseUpHandler
 
 	game = newGame()
 	game.init()
@@ -175,24 +156,6 @@ function spawnEnemy() {
 
 Weapons = {}
 
-function getKeyDefs(key) {
-	if (keyDefs[key])
-		return keyDefs[key]
-	return key
-}
-
-function keyDownHandler(event) {
-	keys[getKeyDefs(event.key)] = true
-}
-
-function keyUpHandler(event) {
-	keys[getKeyDefs(event.key)] = false
-		/*
-		if(keyDefs[event.key])
-		{
-			keys[keyDefs[event.key]]=false
-		}*/
-}
 
 function mouseMoveHandler(event) {
 	mx = event.clientX
@@ -215,9 +178,4 @@ function resizeWindow(event) {
 }
 
 window.onload = init
-window.onkeydown = keyDownHandler
-window.onkeyup = keyUpHandler
-window.onmousemove = mouseMoveHandler
-window.onmousedown = mouseDownHandler
-window.onmouseup = mouseUpHandler
 window.onresize = resizeWindow
