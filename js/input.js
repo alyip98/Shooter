@@ -7,7 +7,8 @@ var keys = {
 	"f": false,
 	"v": false,
 	"mouse": false,
-	"spawn": false
+	"spawn": false,
+	"skill1": false
 }
 
 var keyDefs = {
@@ -22,7 +23,9 @@ var keyDefs = {
 	"f": "f",
 	"v": "v",
 	"e": "spawn",
-	"p": "p"
+	"p": "p",
+	"q": "skill1",
+	"z": "skill2"
 }
 
 function getKeyDefs(key) {
