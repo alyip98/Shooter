@@ -7,6 +7,7 @@ function Entity(){
 	this.dir = 0
 	this.shootDir = 0
     this.hp = 100;
+	this.mp=0;
     this.hpMax = 100;
     this.HPBar = new HealthBar(this);
     this.HPBar.width = this.size;

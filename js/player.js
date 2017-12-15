@@ -5,6 +5,10 @@ function Player() {
 	this.attackCD = 1000
 	this.attackCDcurr = 0
 	this.weapon = Weapons.Bow
+	this.skills={
+		skill1: new MagicMissile(this),
+		skill2: new Shockwave(this)
+	};
 	this.speed = 5;
 
 	this.init = function(x, y) {
@@ -47,6 +51,27 @@ function Player() {
 		if (this.weapon.special && keys["r"]) {
 			this.weapon.special(this);
 		}
+
+		if(this.skills.skill1){
+			this.skills.skill1.tick(dt);
+			if(keys["skill1"]){
+				this.skills.skill1.channel(dt);
+			} else {
+				this.skills.skill1.cancelCast();
+			}
+
+		}
+
+		if(this.skills.skill2){
+			this.skills.skill2.tick(dt);
+			if(keys["skill2"]){
+				this.skills.skill2.channel(dt);
+			} else {
+				this.skills.skill2.cancelCast();
+			}
+
+		}
+
 	}
 
     this.erender = this.render;

@@ -13,6 +13,10 @@ function Bar(obj){
     this.boundObject = obj;
     this.position = "fixed";
 
+    this.tick=function(){
+
+    }
+
     this.render = function(){
         if(this.position === "follow"){
             this.x = obj.x;
@@ -117,5 +121,19 @@ function HealthBar(obj){
     this.position = "follow";
     this.getPercentage = function(){
         return obj.getHealth()/obj.getMaxHealth();
+    }
+}
+
+function ChannelBar(obj){
+    Bar.call(this, obj);
+
+    this.position = "absolute";
+    this.width = 200;
+    this.height = 20;
+    this.x = (W)/2;
+    this.y = (H-H/6);
+
+    this.getPercentage = function(){
+        return obj.channelDuration/obj.castTime;
     }
 }

@@ -157,18 +157,6 @@ function spawnEnemy() {
 Weapons = {}
 
 
-function mouseMoveHandler(event) {
-	mx = event.clientX
-	my = event.clientY
-}
-
-function mouseDownHandler(event) {
-	keys["mouse"] = true
-}
-
-function mouseUpHandler(event) {
-	keys["mouse"] = false
-}
 
 function resizeWindow(event) {
 	W = window.innerWidth;
