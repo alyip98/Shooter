@@ -59,7 +59,6 @@ function Player() {
 			} else {
 				this.skills.skill1.cancelCast();
 			}
-
 		}
 
 		if(this.skills.skill2){

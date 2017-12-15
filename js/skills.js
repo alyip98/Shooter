@@ -120,7 +120,6 @@ Shockwave.prototype.constructor = Shockwave;
 Shockwave.prototype.cast = function(){
 	Skill.prototype.cast.call(this);
 	var proj = new ShockwaveProjectile(this.owner.x, this.owner.y, 100, this.owner.shootDir, 1);
-	proj.fxn = 0.995;
 	game.projectiles.push(proj);
 	this.reset();
 }
