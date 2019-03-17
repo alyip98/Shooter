@@ -8,6 +8,7 @@ function Enemy() {
 	this.hp = 10;
     this.hpMax = 10;
 	this.turnrate = 1
+	this.attack = 0.1;
 	this.init = function(x, y) {
 		this.x = x || W / 2
 		this.y = y || H / 2
@@ -48,6 +49,11 @@ function Enemy() {
 
 		this.dir = Math.atan2(vy, vx)
 		this.v = Math.sqrt(vx * vx + vy * vy)
+		
+		// dmg
+		if (this.getCoords().distTo(game.player.getCoords()) <= this.size + game.player.size) {
+			game.player.damage(this.attack);
+		}
 	}
 
     this.erender = this.render;

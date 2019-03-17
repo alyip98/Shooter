@@ -60,8 +60,12 @@ function Entity(){
 		this.hp -= damage
 		//game.misc.push(new PopupText(this.x, this.y, damage.toFixed(2)))
 		if (this.hp <= 0) {
-			this.toRemove = true
+			this.kill();
 		}
+	}
+	
+	this.kill = function() {
+		this.toRemove = true;
 	}
 
 	this.knockback = function(force, direction) {

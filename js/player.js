@@ -15,7 +15,7 @@ function Player() {
 		this.x = x || W / 2
 		this.y = y || H / 2
 	}
-
+	
     this.etick = this.tick;
 	this.tick = function(dt) {
 		//Entity.tick.call(this, dt);

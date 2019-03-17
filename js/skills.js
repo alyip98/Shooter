@@ -73,7 +73,7 @@ MagicMissile.prototype.channel = function(dt){
 	Skill.prototype.channel.call(this, dt);
 
 	//0, 250, 500, 750, 1000
-	if(Math.pow(this.channelDuration/this.castTime,20)>(this.firedProjectiles+1)/this.projectiles){
+	if(Math.pow(this.channelDuration/this.castTime,1)>(this.firedProjectiles+1)/this.projectiles){
 		this.firedProjectiles++;
 		this.launchMissile();
 	}
@@ -107,6 +107,7 @@ function MagicMissileProjectile(x, y, v, dir, owner){
 		ctx.fill();
 	}
 }
+MagicMissileProjectile.prototype = Projectile.prototype;
 
 function Shockwave(owner){
 	Skill.call(this, owner);

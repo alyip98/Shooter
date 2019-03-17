@@ -47,11 +47,17 @@ function newGame() {
 			oldTime = Date.now()
 			game.player.init()
 			game.timeToNextSpawn = 0;
+			game.isPaused = false;
+			game.isOver = false;
 			//spawnEnemy()
 		},
 
 		tick: function() {
 			dt = Date.now() - oldTime
+			if (game.isPaused) {
+				game.render();
+				return;
+			}
 			game.counter += 1
 
 			if (keys["1"])
@@ -66,6 +72,9 @@ function newGame() {
 				game.player.weapon = Weapons.Tesla;
 			//tick player
 			game.player.tick(dt)
+			if (game.player.toRemove) {
+				gameOver();
+			}
 
 			//tick projectiles
 			for (var i = 0; i < game.projectiles.length; i++) {
@@ -96,7 +105,7 @@ function newGame() {
 
 			if (game.counter % 100 == 0) {
 				//spawn enemy
-				//spawnEnemy()
+				spawnEnemy()
 			}
 
 			if (keys.spawn && Date.now() > game.timeToNextSpawn) {
@@ -119,6 +128,11 @@ function newGame() {
 			ctx.fillStyle = "black"
 			ctx.fillRect(0, 0, W, H)
 
+			if (game.isOver) {
+				ctx.fillStyle = "white";
+				ctx.fillText("Game Over", W/2, H/2);
+				return;
+			}
 			//draw player
 			game.player.render()
 
@@ -146,6 +160,11 @@ function newGame() {
 		misc: []
 	}
 	return toReturn;
+}
+
+function gameOver() {
+	game.isPaused = true;
+	game.isOver = true;
 }
 
 function spawnEnemy() {
