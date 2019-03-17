@@ -14,6 +14,7 @@ function Enemy() {
 		this.y = y || H / 2
 	}
     this.etick = this.tick;
+	this.target = -1;
 	this.tick = function(dt) {
         this.etick(dt);
 		dts = dt / 1000 * 16 || 1
@@ -21,7 +22,11 @@ function Enemy() {
 			//friction
 
 		//turning
-		targetDir = Math.atan2(-this.y + game.player.y, -this.x + game.player.x)
+		if (this.target == -1) {
+			this.target = Math.floor(Math.random() * game.players.length);
+		}
+		var player = game.players[this.target];
+		targetDir = Math.atan2(-this.y + player.y, -this.x + player.x)
 		ddir = this.facingDir - targetDir
 		if (ddir < -Math.PI) ddir += 2 * Math.PI
 		if (ddir > Math.PI) ddir -= 2 * Math.PI
@@ -51,8 +56,8 @@ function Enemy() {
 		this.v = Math.sqrt(vx * vx + vy * vy)
 		
 		// dmg
-		if (this.getCoords().distTo(game.player.getCoords()) <= this.size + game.player.size) {
-			game.player.damage(this.attack);
+		if (this.getCoords().distTo(player.getCoords()) <= this.size + player.size) {
+			player.damage(this.attack);
 		}
 	}
 

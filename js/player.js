@@ -1,15 +1,20 @@
-
-function Player() {
+var COLORS = ["#001f3f", "#0074D9", "#7FDBFF", "#39CCCC", "#3D9970", "#2ECC40", "#01FF70", "#FFDC00", "#FF851B", "#FF4136", "#85144b", "#F012BE", "#B10DC9"];
+function Player(id) {
 	Entity.call(this);
+	this.id = id;
 	this.shootDir = 0
 	this.attackCD = 1000
 	this.attackCDcurr = 0
 	this.weapon = Weapons.Bow
+	this.controller = new Controller();
 	this.skills={
 		skill1: new MagicMissile(this),
 		skill2: new Shockwave(this)
 	};
 	this.speed = 5;
+	this.x = W/2;
+	this.y = H/2;
+	this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
 
 	this.init = function(x, y) {
 		this.x = x || W / 2
@@ -22,7 +27,7 @@ function Player() {
         this.etick(dt);
 		dts = dt / 1000 * 16
 
-		this.shootDir = Math.atan2(my - this.y, mx - this.x);
+		this.shootDir = this.dir;//Math.atan2(my - this.y, mx - this.x);
 
         //moving
 		dvx = 0;
@@ -36,12 +41,14 @@ function Player() {
 		if (dvx != 0 || dvy != 0) {
             this.force(this.speed, Math.atan2(dvy, dvx));
 		}
+		
+		this.force(this.speed * this.controller.getInput("stickMagnitude"), this.controller.getInput("stickAngle"));
 
 		//shooting
 		if (this.weapon.tick)
             this.weapon.tick(this, dt);
 
-		if (keys["mouse"]) {
+		if (this.controller.getInput("down")) {
 			this.weapon.charge(this, dt)
 		} else {
 			this.weapon.release(this);
@@ -54,7 +61,7 @@ function Player() {
 
 		if(this.skills.skill1){
 			this.skills.skill1.tick(dt);
-			if(keys["skill1"]){
+			if(this.controller.getInput("left")){
 				this.skills.skill1.channel(dt);
 			} else {
 				this.skills.skill1.cancelCast();
@@ -63,7 +70,7 @@ function Player() {
 
 		if(this.skills.skill2){
 			this.skills.skill2.tick(dt);
-			if(keys["skill2"]){
+			if(this.controller.getInput("right")){
 				this.skills.skill2.channel(dt);
 			} else {
 				this.skills.skill2.cancelCast();
@@ -77,10 +84,10 @@ function Player() {
 	this.render = function() {
         this.erender();
 		tmp = ctx.fillStyle
-		ctx.fillStyle = "white"
+		ctx.fillStyle = this.color;
 		ctx.fillRect(this.x, this.y, 1, 1)
 
-		ctx.strokeStyle = "white"
+		ctx.strokeStyle = this.color;
 			//ctx.moveTo(this.x-this.size/2,this.y)
 		ctx.beginPath()
 		ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2)

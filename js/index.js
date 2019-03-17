@@ -15,6 +15,7 @@ Add new enemy type
 var game
 var W, H
 var mx, my
+var socket
 
 
 function init() {
@@ -35,17 +36,48 @@ function init() {
 	window.onmousemove = mouseMoveHandler
 	window.onmousedown = mouseDownHandler
 	window.onmouseup = mouseUpHandler
+	
+	setupSocket()
 
 	game = newGame()
 	game.init()
 	game.tick()
 }
 
+function setupSocket() {
+	socket = io();
+	socket.emit("gameInit", "");
+	
+	socket.on("playerJoin", function(msg) {
+		console.log("player joining: " + msg);
+		game.addPlayer(msg);
+	});
+	
+	socket.on("joystick", function(msg) {
+		// update controller obj
+		var obj = JSON.parse(msg);
+		var playerId = obj.id;
+		var player = game.getPlayerById(playerId);
+		if (player) {
+			player.controller.updateJoystick(msg);
+		}
+	});
+	
+	socket.on("button", function(msg) {
+		// update controller obj
+		var obj = JSON.parse(msg);
+		var playerId = obj.id;
+		var player = game.getPlayerById(playerId);
+		if (player) {
+			player.controller.updateButton(msg);
+		}
+	});
+}
+
 function newGame() {
 	var toReturn = {
 		init: function() {
 			oldTime = Date.now()
-			game.player.init()
 			game.timeToNextSpawn = 0;
 			game.isPaused = false;
 			game.isOver = false;
@@ -60,19 +92,15 @@ function newGame() {
 			}
 			game.counter += 1
 
-			if (keys["1"])
-				game.player.weapon = Weapons.Bow;
-			if (keys["2"])
-				game.player.weapon = Weapons.MachineGun;
-			if (keys["3"])
-				game.player.weapon = Weapons.Shotgun;
-			if (keys["4"])
-				game.player.weapon = Weapons.SplitBow;
-			if (keys["5"])
-				game.player.weapon = Weapons.Tesla;
 			//tick player
-			game.player.tick(dt)
-			if (game.player.toRemove) {
+			var alive = 0;
+			for (var i = 0; i < game.players.length; i++) {
+				game.players[i].tick(dt)
+				if (!game.players[i].toRemove) {
+					alive++;
+				}
+			}
+			if (alive == 0 && game.players.length > 0) {
 				gameOver();
 			}
 
@@ -134,7 +162,9 @@ function newGame() {
 				return;
 			}
 			//draw player
-			game.player.render()
+			for (var i = 0; i < game.players.length; i++) {
+				game.players[i].render();
+			}
 
 			//draw enemies
 			for (var i = 0; i < game.enemies.length; i++) {
@@ -151,7 +181,24 @@ function newGame() {
 			}
 		},
 
-		player: new Player(),
+		getPlayerById: function(id) {
+			for (var i = 0; i < game.players.length; i++) {
+				if (game.players[i].id == id) {
+					return game.players[i];
+				}
+			}
+			return null;
+		},
+		
+		addPlayer: function(msg) {
+			if (game.getPlayerById(msg) != null) {
+				return;
+			}
+			var player = new Player(msg);
+			game.players.push(player);	
+		},
+		
+		players: [],
 		name: "Game",
 		stage: 1,
 		counter: 1,
@@ -165,6 +212,7 @@ function newGame() {
 function gameOver() {
 	game.isPaused = true;
 	game.isOver = true;
+	console.log("Game Over");
 }
 
 function spawnEnemy() {

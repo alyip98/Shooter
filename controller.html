@@ -1,0 +1,296 @@
+<!doctype html>
+<html>
+	<meta name="viewport" content="width=device-width,user-scalable=no">
+	<meta name="mobile-web-app-capable" content="yes">
+  <head>
+    <title>Phone Controller</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+    </style>
+  </head>
+  <body>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      /*$(function () {
+        var socket = io();
+        $('form').submit(function(){
+          socket.emit('chat message', "sent: [" + Date.now() + "] " + $('#m').val());
+          $('#m').val('');
+          return false;
+        });
+        socket.on('chat message', function(msg){
+          $('#messages').append($('<li>').text("received: [" + Date.now() + "] " + msg));
+          window.scrollTo(0, document.body.scrollHeight);
+        });
+      });*/
+	
+	var c, ctx;
+	var W, H;
+	var socket;
+	var points = [];
+	var buttons = [];
+	var buttonTouches = {};
+	var debugText = "asd";
+	var mouseDown = false;
+	
+	function init() {
+		buildUI();
+		establishConnection();
+		registerHandlers();
+		render();
+	}
+	
+	function buildUI() {
+		c = document.getElementById("display");
+		ctx = c.getContext("2d");
+		W = window.innerWidth;
+		H = window.innerHeight;
+		c.width = W;
+		c.height = H;
+		Joystick.y = H * 0.7;
+		
+		var x = W - 100;
+		var y = H * 0.7;
+		var separation = 50;
+		var upButton = new Button("up", x, y - separation, 25, "green");
+		var downButton = new Button("down", x, y + separation, 25, "blue");
+		var leftButton = new Button("left", x - separation, y, 25, "purple");
+		var rightButton = new Button("right", x + separation, y, 25, "red");
+		
+		buttons = [upButton, downButton, leftButton, rightButton];
+	}
+	
+	function establishConnection() {
+		socket = io();
+	
+		var cookie = document.cookie;
+		// valid session stored
+		if (parseInt(cookie) >= 0) {
+			socket.emit("clientRejoin", cookie);
+		} else {
+			cookie = Math.floor(Math.random() * 1000000000);
+			document.cookie = cookie;
+			socket.emit("clientNew", cookie);
+		}
+		
+		socket.on("joinSuccess", function(msg) {
+			console.log("successfully joined", msg);
+		});
+	}
+	
+	function registerHandlers() {
+		c.ontouchstart = touchStartHandler;
+		c.ontouchmove = touchMoveHandler;
+		c.ontouchend = touchEndHandler;
+		
+		c.onmousedown = mouseDownHandler;
+		c.onmousemove = mouseMoveHandler;
+		c.onmouseup = mouseUpHandler;
+	}
+	
+	function render() {
+		ctx.fillStyle = "black";
+		ctx.fillRect(0, 0, W, H);
+		ctx.fillStyle = "yellow";
+		for (var i in points) {
+			var p = points[i];
+			ctx.fillRect(p[0], p[1], 5, 5);
+		}
+		
+		// ctx.fillText(debugText, W/2, H/2);
+		
+		// Joystick
+		ctx.strokeStyle = "white";
+		ctx.beginPath();
+		ctx.arc(Joystick.x, Joystick.y, Joystick.r, 0, Math.PI * 2, true);
+		ctx.closePath();
+		ctx.stroke();
+		
+		ctx.beginPath();
+		ctx.arc(Joystick.x, Joystick.y, Joystick.r / 2, 0, Math.PI * 2, true);
+		ctx.closePath();
+		ctx.stroke();
+		
+		if (Joystick.touchId != -1) {
+			ctx.fillRect(Joystick.stickX, Joystick.stickY, 10, 10);
+		}
+		
+		// Buttons
+		for (var i = 0; i < buttons.length; i++) {
+			ctx.fillStyle = buttons[i].color;
+			ctx.beginPath();
+			ctx.arc(buttons[i].x, buttons[i].y, buttons[i].r, 0, Math.PI * 2, true);
+			ctx.closePath();
+			ctx.fill();
+		}
+		
+		
+		window.requestAnimationFrame(render);
+	}
+	
+	function touchStartHandler(e) {
+		e.preventDefault();
+		for (var i = 0; i < e.touches.length; i++) {
+			var touch = e.touches[i];
+			if (Joystick.touchId == -1 && Joystick.isInsideArea(touch.clientX, touch.clientY)) {
+				Joystick.touchId = touch.identifier;
+				if (window.navigator.vibrate) {
+						window.navigator.vibrate(50);
+					}
+			}
+			
+			for (var j = 0; j < buttons.length; j++) {
+				if (buttons[j].isInsideArea(touch.clientX, touch.clientY)) {
+					debugText += "ASd";
+					if (window.navigator.vibrate) {
+						window.navigator.vibrate(200);
+					}
+					socket.emit("button", messageWithId({
+						button: buttons[j].name,
+						status: 1
+					}));
+					buttonTouches[touch.identifier] = buttons[j].name;
+				}
+			}
+		}
+		// updatePoints(e);
+	}
+	
+	function messageWithId(msg) {
+		console.log(msg)
+		msg.id = document.cookie;
+		return JSON.stringify(msg);
+	}
+	
+	function mouseDownHandler(e) {
+		mouseDown = true;
+		e.preventDefault();
+		Joystick.updateStickPos(e.clientX, e.clientY);
+		
+		for (var j = 0; j < buttons.length; j++) {
+			if (buttons[j].isInsideArea(e.clientX, e.clientY)) {
+				debugText += "ASd";
+				if (window.navigator.vibrate) {
+					window.navigator.vibrate(200);
+				}
+				socket.emit("button", messageWithId({
+					button: buttons[j].name,
+					status: 1
+				}));
+				buttonTouches[0] = buttons[j].name;
+			}
+		}
+		socket.emit("joystick", messageWithId(Joystick.getInput()));
+	}
+	
+	function mouseMoveHandler(e) {
+		if(!mouseDown) return;
+		Joystick.updateStickPos(e.clientX, e.clientY);
+		socket.emit("joystick", messageWithId(Joystick.getInput()));
+	}
+	
+	function mouseUpHandler(e) {
+		mouseDown = false;
+		socket.emit("joystick", messageWithId(Joystick.getZeroed()));
+	}
+	
+	function touchMoveHandler(e) {
+		e.preventDefault();
+		updatePoints(e);
+		if (Joystick.touchId != -1) {
+			socket.emit("joystick", messageWithId(Joystick.getInput()));
+		}
+	}
+	
+	function touchEndHandler(e) {
+		e.preventDefault();
+		for (var i = 0; i < e.changedTouches.length; i++) {
+			var touch = e.changedTouches[i];
+			if (Joystick.touchId == touch.identifier) {
+				Joystick.touchId = -1;
+				socket.emit("joystick", messageWithId(Joystick.getZeroed()));
+			}
+			
+			if (buttonTouches[touch.identifier]) {
+				socket.emit("button", messageWithId({
+						button: buttonTouches[touch.identifier],
+						status: 0
+					}));
+				delete buttonTouches[touch.identifier];
+			}
+		}
+	}
+	
+	function orientationChangeHandler(e) {
+		W = window.innerWidth;
+		H = window.innerHeight;
+		c.width = W;
+		c.height = H;
+		Joystick.y = H * 0.7;
+		render();
+	}
+	
+	function updatePoints(e) {
+		points = [];
+		for (var i = 0; i < e.touches.length; i++) {
+			var touch = e.touches[i];
+			points.push([e.touches[i].clientX, e.touches[i].clientY]);
+			if (Joystick.touchId == touch.identifier) {
+				Joystick.updateStickPos(touch.clientX, touch.clientY);
+			}
+		}
+	}
+	
+	var Joystick = {
+		x: 100,
+		y: 100,
+		r: 75,
+		touchId: -1,
+		stickX: 0,
+		stickY: 0,
+		angle: 0,
+		magnitude: 0,
+		
+		isInsideArea: function(px, py) {
+			return Math.pow(px - this.x, 2) + Math.pow(py - this.y, 2) <= Math.pow(this.r, 2);
+		},
+		
+		updateStickPos: function(px, py) {
+			this.angle = Math.atan2(py - this.y, px - this.x);
+			this.magnitude = Math.min(Math.sqrt(Math.pow(px - this.x, 2) + Math.pow(py - this.y, 2)), this.r) / this.r;
+			this.stickX = this.x + Math.cos(this.angle) * this.magnitude * this.r;
+			this.stickY = this.y + Math.sin(this.angle) * this.magnitude * this.r;
+		},
+		
+		getInput: function() {
+			return {
+				angle: this.angle,
+				magnitude: this.magnitude
+			};
+		},
+		
+		getZeroed: function() {
+			return {
+				angle: 0,
+				magnitude: 0
+			}
+		}
+	}
+	
+	var Button = function(name, x, y, r, color) {
+		this.name = name;
+		this.x = x;
+		this.y = y;
+		this.r = r;
+		this.color = color || "white";
+		this.isInsideArea = function(px, py) {
+			return Math.pow(px - this.x, 2) + Math.pow(py - this.y, 2) <= Math.pow(this.r, 2);
+		}
+	}
+	
+	window.onload = init;
+	window.addEventListener("orientationchange", orientationChangeHandler, false);
+    </script>
+	<canvas id="display"></canvas>
+  </body>
+</html>

@@ -125,14 +125,17 @@ Shockwave.prototype.cast = function(){
 	this.reset();
 }
 
-function ShockwaveProjectile(x, y, v, dir, owner){
+var ShockwaveProjectile = function(x, y, v, dir, owner){
 	Projectile.call(this, x, y, v, dir, owner);
+}
 
-	this.render = function(){
-		ctx.fillStyle = "white";
-		ctx.beginPath();
-		ctx.arc(this.x, this.y, 5, 0, Math.PI * 2);
-		ctx.closePath();
-		ctx.fill();
-	}
+var proto = new Projectile;
+Object.setPrototypeOf(ShockwaveProjectile, Projectile.prototype);
+
+ShockwaveProjectile.prototype.render = function(){
+	ctx.fillStyle = "white";
+	ctx.beginPath();
+	ctx.arc(this.x, this.y, 5, 0, Math.PI * 2);
+	ctx.closePath();
+	ctx.fill();
 }
