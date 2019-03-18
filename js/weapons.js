@@ -1,12 +1,12 @@
 Weapons.Bow = {
 	name: "Wooden Bow",
-	damage: 1,
+	damage: 7,
 	type: "bow",
 	element: "none",
 	specialProjectileEnabled: false,
 	fire: function(player) {
 		var proj = new Projectile(player.x, player.y, 100 * this.currCharge / 1000, player.shootDir + (-0.5 + Math.random()) * Math.PI / 100, player);
-		proj.damage = this.currCharge / 750 + 1;
+		proj.damage = (this.currCharge / 750 + 1) * this.damage;
 		proj.v = 700 * this.currCharge/this.maxCharge;
 		proj.fxn = 0.9;
 		proj.knockbackCoeff = 0.5;
@@ -75,22 +75,23 @@ Weapons.Bow = {
 
 Weapons.MachineGun = {
 	name: "Machine Gun",
-	damage: 0.1,
+	damage: 0.55,
 	type: "gun",
 	element: "none",
 	rof: 1,
-	heat: 10000,
-	maxHeat: 10000,
-	cooling: 0.5,
-	heating: 30,
+	heat: 0,
+	maxHeat: 100,
+	cooling: 40,
+	overheatPenalty: 0.7,
+	heating: 1.6,
 	canFire: true,
 	released: true,
 	fire: function(player) {
-		var proj = new Projectile(player.x, player.y, 100 * this.currCharge / 1000, player.shootDir + (-0.5 + Math.random()) * Math.PI / 100, player)
+		var proj = new Projectile(player.x, player.y, 30, player.shootDir + (-0.5 + Math.random()) * Math.PI / 100, player)
 		proj.damage = this.damage
 		proj.penetrate = false
 		proj.hp = 1
-		proj.v = 400
+		proj.v = 200
 		proj.knockbackCoeff = 0.01
 		proj.fxn = 0.99
 		proj.render = function() {
@@ -128,9 +129,9 @@ Weapons.MachineGun = {
 	},
 	tick: function(player, dt) {
 		if (this.canFire && !keys["mouse"])
-			this.heat = Math.max(this.heat * 0.95 - dt * this.cooling, 0)
+			this.heat = Math.max(this.heat - dt * this.cooling/1000, 0)
 		else
-			this.heat = Math.max(this.heat - dt * this.cooling, 0)
+			this.heat = Math.max(this.heat - dt * this.cooling/1000 * this.overheatPenalty, 0)
 
 		if (this.heat == 0) {
 			this.canFire = true
@@ -146,13 +147,14 @@ Weapons.Shotgun = {
 	element: "none",
 	rof: 1,
 	shots: 10,
-	accuracy: 0.9,
+	accuracy: 0.5,
 	ammo: 5,
 	maxAmmo: 5,
 	reloadTime: 2000,
 	cd: 0,
-	maxCD: 500,
+	maxCD: 0,
 	canFire: true,
+	reloading: false,
 	released: true,
 	fire: function(player) {
 		for (var i = 0; i < this.shots; i++) {
@@ -173,26 +175,27 @@ Weapons.Shotgun = {
 		}
 	},
 	charge: function(player, dt) {
-		if (!this.canFire) return;
+		if (!this.canFire || this.reloading) return;
 		if (this.cd <= 0) {
 			this.ammo -= 1
 			this.fire(player)
 			this.cd = this.maxCD
-			if (this.ammo == 0) {
+			this.canFire = false;
+			if (this.ammo <= 0) {
 				this.special(player)
 			}
 		}
 	},
 	special: function(player) {
-		this.canFire = false
+		this.reloading = true;
 	},
 	release: function(dt) {
-
+		this.canFire = true;
 	},
 	render: function(player) {
 		if (this.ammo > 0) {
 			tmp = ctx.fillStyle
-			ctx.fillStyle = this.canFire ? "white" : "red"
+			ctx.fillStyle = this.reloading ? "red" : "white"
 			ctx.beginPath()
 			ctx.arc(player.x, player.y, player.size / 2 * (this.ammo / this.maxAmmo), 0, Math.PI * 2)
 			ctx.closePath()
@@ -201,12 +204,12 @@ Weapons.Shotgun = {
 	},
 	tick: function(player, dt) {
 		this.cd = Math.max(this.cd - dt, 0)
-		if (!this.canFire) {
+		if (this.reloading) {
 			//reloading
 			this.ammo += dt * this.maxAmmo / this.reloadTime
 			if (this.ammo >= this.maxAmmo) {
 				this.ammo = this.maxAmmo
-				this.canFire = true
+				this.reloading = false
 			}
 		}
 	}
@@ -401,4 +404,15 @@ Weapons.Tesla = {
             ctx.stroke();
         }
     }
+}
+
+Weapons.create = function() {
+	var bowCopy = {}
+	var mgCopy = {}
+	var sgCopy = {}
+	
+	Object.assign(bowCopy, Weapons.Bow)
+	Object.assign(mgCopy, Weapons.MachineGun)
+	Object.assign(sgCopy, Weapons.Shotgun)
+	return [bowCopy, mgCopy, sgCopy]
 }

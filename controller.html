@@ -166,9 +166,15 @@
 	}
 	
 	function mouseDownHandler(e) {
-		mouseDown = true;
 		e.preventDefault();
-		Joystick.updateStickPos(e.clientX, e.clientY);
+		if (Joystick.isInsideArea(e.clientX, e.clientY)) {
+			mouseDown = true;
+			Joystick.updateStickPos(e.clientX, e.clientY);
+			socket.emit("joystick", messageWithId(Joystick.getInput()));
+		} else {
+			console.log("not in area")
+			mouseDown = false;
+		}
 		
 		for (var j = 0; j < buttons.length; j++) {
 			if (buttons[j].isInsideArea(e.clientX, e.clientY)) {
@@ -183,7 +189,6 @@
 				buttonTouches[0] = buttons[j].name;
 			}
 		}
-		socket.emit("joystick", messageWithId(Joystick.getInput()));
 	}
 	
 	function mouseMoveHandler(e) {
@@ -303,8 +308,8 @@
 			"skill1": false
 		},
 		buttons: new Map([
-			["j", "btn1"],
-			["i", "btn2"],
+			["i", "btn1"],
+			["j", "btn2"],
 			["k", "btn3"],
 			["l", "btn4"],
 			["q", "lt"],

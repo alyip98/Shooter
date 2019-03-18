@@ -81,6 +81,7 @@ function DamageText(obj){
     this.timeout = 1000;
     this.prevHP = -1;
     this.startHP = 0;
+	this.hitHP = 0;
     this.text = "";
 
     this.tick = function(dt){
@@ -88,10 +89,12 @@ function DamageText(obj){
         //console.log(dhp);
         if(dhp<0){
             this.hidden = false;
-            if(this.timeout<0)
-                this.startHP = this.prevHP;
+            if(this.timeout<0) {
+				this.hitHP = dhp;
+			} else {
+				this.hitHP += dhp;
+			}
             this.timeout = 1000;
-            this.text = this.startHP - obj.getHealth();
         } else {
             this.timeout -= dt;
             if(this.timeout<=0){
@@ -111,7 +114,7 @@ function DamageText(obj){
     }
 
     this.getText = function(){
-        return (this.startHP - obj.getHealth()).toFixed(2);
+        return (-this.hitHP).toFixed(2);
     }
 }
 

@@ -5,24 +5,20 @@ function Player(id) {
 	this.shootDir = 0
 	this.attackCD = 1000
 	this.attackCDcurr = 0
-	this.weapon = Weapons.Bow
 	this.hpRegenRate = 1;
-	this.weapons = [
-		Weapons.Bow,
-		Weapons.MachineGun,
-		Weapons.Shotgun,
-		Weapons.SplitBow,
-		Weapons.Tesla
-	]
+	this.weapons = Weapons.create()
 	this.currentWeapon = 0
+	this.weapon = this.weapons[this.currentWeapon];
 	this.controller = new Controller();
 	this.skills={
 		skill1: new MagicMissile(this),
 		skill2: new Shockwave(this)
 	};
 	this.speed = 5;
-	this.x = W/2;
-	this.y = H/2;
+	this.x = W * Math.random();
+	this.y = H * Math.random();
+	this.size = 64;
+	
 	this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
 
 	this.init = function(x, y) {
@@ -39,6 +35,9 @@ function Player(id) {
 		this.weapon = this.weapons[this.currentWeapon];
 	}, 500)
 	this.tick = function(dt) {
+		if (this.toRemove) {
+			return;
+		}
 		//Entity.tick.call(this, dt);
         this.etick(dt);
 		dts = dt / 1000 * 16
@@ -64,9 +63,9 @@ function Player(id) {
 		if (magnitude > 0)
 			this.shootDir = this.dir;//Math.atan2(my - this.y, mx - this.x);
 
-		if (this.controller.getInput("lt")) {
+		if (this.controller.getInput("lt")|| this.controller.getInput("btn3")) {
 			this.switchWeapon(-1)
-		} else if (this.controller.getInput("rt")) {
+		} else if (this.controller.getInput("rt") || this.controller.getInput("btn4")) {
 			this.switchWeapon(1)
 		} else {
 			this.switchWeapon.lastTime = 0
@@ -76,20 +75,20 @@ function Player(id) {
 		if (this.weapon.tick)
             this.weapon.tick(this, dt);
 
-		if (this.controller.getInput("btn1")) {
+		if (this.controller.getInput("btn2")) {
 			this.weapon.charge(this, dt)
 		} else {
 			this.weapon.release(this);
 		}
 
 		//weapon special
-		if (this.weapon.special && keys["btn2"]) {
+		if (this.weapon.special && keys["btn1"]) {
 			this.weapon.special(this);
 		}
 
 		if(this.skills.skill1){
 			this.skills.skill1.tick(dt);
-			if(this.controller.getInput("btn3")){
+			if(this.controller.getInput("btn5")){
 				this.skills.skill1.channel(dt);
 			} else {
 				this.skills.skill1.cancelCast();
@@ -98,7 +97,7 @@ function Player(id) {
 
 		if(this.skills.skill2){
 			this.skills.skill2.tick(dt);
-			if(this.controller.getInput("btn4")){
+			if(this.controller.getInput("btn6")){
 				this.skills.skill2.channel(dt);
 			} else {
 				this.skills.skill2.cancelCast();
@@ -111,6 +110,14 @@ function Player(id) {
 	this.render = function() {
         this.erender();
 		tmp = ctx.fillStyle
+		if (this.toRemove) {
+			ctx.fillStyle = "grey";
+			ctx.beginPath()
+			ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2)
+			ctx.closePath()
+			ctx.fill()
+			return;
+		}
 		ctx.fillStyle = this.color;
 		ctx.fillRect(this.x, this.y, 1, 1)
 
