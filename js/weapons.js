@@ -5,7 +5,7 @@ Weapons.Bow = {
 	element: "none",
 	specialProjectileEnabled: false,
 	fire: function(player) {
-		var proj = new Projectile(player.x, player.y, 100 * this.currCharge / 1000, player.shootDir + (-0.5 + Math.random()) * Math.PI / 100, 1);
+		var proj = new Projectile(player.x, player.y, 100 * this.currCharge / 1000, player.shootDir + (-0.5 + Math.random()) * Math.PI / 100, player);
 		proj.damage = this.currCharge / 750 + 1;
 		proj.v = 700 * this.currCharge/this.maxCharge;
 		proj.fxn = 0.9;
@@ -86,7 +86,7 @@ Weapons.MachineGun = {
 	canFire: true,
 	released: true,
 	fire: function(player) {
-		var proj = new Projectile(player.x, player.y, 100 * this.currCharge / 1000, player.shootDir + (-0.5 + Math.random()) * Math.PI / 100, 1)
+		var proj = new Projectile(player.x, player.y, 100 * this.currCharge / 1000, player.shootDir + (-0.5 + Math.random()) * Math.PI / 100, player)
 		proj.damage = this.damage
 		proj.penetrate = false
 		proj.hp = 1
@@ -156,7 +156,7 @@ Weapons.Shotgun = {
 	released: true,
 	fire: function(player) {
 		for (var i = 0; i < this.shots; i++) {
-			var proj = new Projectile(player.x, player.y, 100 * this.currCharge / 1000, player.shootDir + (-0.5 + Math.random()) * Math.PI * (1 - this.accuracy), 1)
+			var proj = new Projectile(player.x, player.y, 100 * this.currCharge / 1000, player.shootDir + (-0.5 + Math.random()) * Math.PI * (1 - this.accuracy), player)
 			proj.damage = 2
 			proj.penetrate = false
 			proj.hp = 1
@@ -248,7 +248,7 @@ Weapons.SplitBow = {
     },
 
 	fire: function(player) {
-		var proj = this.createProjectile(player.x, player.y, 100 * this.currCharge / 1000, player.shootDir + (-0.5 + Math.random()) * Math.PI / 100, 1, this.currCharge / 750 + 1);
+		var proj = this.createProjectile(player.x, player.y, 100 * this.currCharge / 1000, player.shootDir + (-0.5 + Math.random()) * Math.PI / 100, player, this.currCharge / 750 + 1);
         proj.hp = Math.round(Math.random()*3)+2;
         proj.penetrate = true;
 
@@ -299,9 +299,16 @@ Weapons.Tesla = {
     knockbackCoeff:1,
     hitLastTick:0,
     damageAmp:0,
+	maxDamageAmp: 5,
+	damageAmpDecayRate: 1,
     maxTargets: 3,
+	mana: 1000,
+	manaRate: 1000,
+	manaCost: 30,
+	maxMana: 1000,
     tick: function(player, dt){
         this.cd-=dt;
+		this.mana = Math.min(this.mana + this.manaRate * dt/1000, this.maxMana);
         if(this.cd<=0){
             this.bolts = [];
         }
@@ -311,15 +318,17 @@ Weapons.Tesla = {
         }
 
         if(this.hitLastTick === 0){
-            this.damageAmp = Math.max(this.damageAmp - dt/10, 0);
+            this.damageAmp = Math.max(this.damageAmp * 0.98 - this.damageAmpDecayRate * dt/1000, 0);
         }
     },
 
     charge: function(player){
+		if (this.mana < this.manaCost) {return;}
         if(this.cd>0){return;} else {
             this.cd = this.maxCD;
         }
-        var enemies = game.enemies;
+		this.mana -= this.manaCost;
+        var targets = game.enemies;
         var hitEnemies = [];
         var aimVector = VP(this.range, player.shootDir);
         var pv = V(player.x, player.y);
@@ -339,6 +348,7 @@ Weapons.Tesla = {
         }
 
         if(candidates.length>0){
+			console.log("DA", this.damageAmp);
             for(var i=0;i<this.maxTargets;i++){
                 var index = Math.floor(Math.random()*candidates.length);
                 this.fire(player, candidates[index]);
@@ -346,13 +356,13 @@ Weapons.Tesla = {
         }
 
         if(this.hitLastTick>0){
-            this.damageAmp ++;
+            this.damageAmp += 0.1;
         }
     },
 
     fire: function(player, enemy){
-        this.bolts.push(new Lightning(player.getCoords(), enemy.getCoords(), 10, 0.2));
-        enemy.damage(this.damage * this.damageAmp * 1/5);
+        this.bolts.push(new Lightning(player.getCoords(), enemy.getCoords(), 10, 0.2, this.damageAmp));
+        enemy.damage(this.damage * (1 + this.damageAmp));
         enemy.knockback(this.knockbackCoeff, Math.random()*Math.PI*2);
     },
 
@@ -361,12 +371,17 @@ Weapons.Tesla = {
     },
 
     render: function(player){
-        if (this.damageAmp > 0) {
+        /*if (this.damageAmp > 0) {
 			ctx.beginPath()
 			ctx.arc(player.x, player.y, player.size / 2 * Math.min(this.damageAmp, 50)/50, 0, Math.PI * 2);
 			ctx.closePath()
 			ctx.fill()
-		}
+		}*/
+		
+		ctx.beginPath()
+		ctx.arc(player.x, player.y, player.size / 2 * Math.min(this.mana/1000, 1), 0, Math.PI * 2);
+		ctx.closePath()
+		ctx.fill()
 
         if(this.bolts.length>0){
             ctx.beginPath();

@@ -11,7 +11,11 @@ function Controller() {
 		up: 0,
 		down: 0,
 		left: 0,
-		right: 0
+		right: 0,
+		btn1: 0,
+		btn2: 0,
+		btn3: 0,
+		btn4: 0
 	}
 	
 	this.getInput = function(name) {

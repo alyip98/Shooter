@@ -1,3 +1,8 @@
+var CollisionLayer = {
+	Player: 1,
+	Enemies: 2,
+	Projectiles: 4
+}
 
 function Projectile(x, y, v, dir, owner) {
 	//console.log(x,y,v,dir,owner)
@@ -9,11 +14,12 @@ function Projectile(x, y, v, dir, owner) {
 	this.dir = dir || Math.random() * 2 * Math.PI
 	this.penetrate = false
 	this.hp = 1
-	this.owner = owner || 0 //0-neutral; 1-player; 2- enemy
+	this.owner = owner;
 	this.damage = 1
 	this.fxn = 0.95
 	this.decayTime = 3000
 	this.knockbackCoeff = 1
+	this.hitList = []
 }
 
 Projectile.prototype.tick = function(dt){
@@ -32,7 +38,8 @@ Projectile.prototype.tick = function(dt){
 
 	var collisions = this.checkCollisions(dt);
 	for(var i=0;i<collisions.length;i++){
-		this.collide(collisions[i]);
+		if (this.hitList.indexOf(collisions[i] != -1))
+			this.collide(collisions[i]);
 	}
 
 	this.updatePosition(dt);
@@ -76,8 +83,21 @@ Projectile.prototype.getNewPosition = function(dt){
 
 Projectile.prototype.checkCollisions = function(dt){
 	var out=[];
-	if (this.owner == 1) targets = game.enemies;
-	if (this.owner == 2) targets = [game.player];
+	targets = [];
+	if (this.owner) {
+		if (this.owner.constructor.name == "Player") {
+			if (game.mode == Mode.PVP) {
+				targets = Array.from(game.players);
+				targets.splice(targets.indexOf(this.owner), 1);
+			} else {
+				targets = game.enemies;
+			}
+		} else {
+			targets = game.players;
+		}
+	}
+	// if (this.owner == 1) targets = game.enemies;
+	// if (this.owner == 2 || game.mode == Mode.PVP) targets = game.players;
 
 	//collision test
 	for (var i = 0; i < targets.length; i++) {

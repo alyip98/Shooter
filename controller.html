@@ -52,10 +52,10 @@
 		var x = W - 100;
 		var y = H * 0.7;
 		var separation = 50;
-		var upButton = new Button("up", x, y - separation, 25, "green");
-		var downButton = new Button("down", x, y + separation, 25, "blue");
-		var leftButton = new Button("left", x - separation, y, 25, "purple");
-		var rightButton = new Button("right", x + separation, y, 25, "red");
+		var upButton = new Button("btn1", x, y - separation, 25, "green");
+		var downButton = new Button("btn2", x, y + separation, 25, "blue");
+		var leftButton = new Button("btn3", x - separation, y, 25, "purple");
+		var rightButton = new Button("btn4", x + separation, y, 25, "red");
 		
 		buttons = [upButton, downButton, leftButton, rightButton];
 	}
@@ -86,6 +86,9 @@
 		c.onmousedown = mouseDownHandler;
 		c.onmousemove = mouseMoveHandler;
 		c.onmouseup = mouseUpHandler;
+		
+		document.body.onkeydown = keyDownHandler;
+		document.body.onkeyup = keyUpHandler;
 	}
 	
 	function render() {
@@ -157,7 +160,7 @@
 	}
 	
 	function messageWithId(msg) {
-		console.log(msg)
+		// console.log(msg)
 		msg.id = document.cookie;
 		return JSON.stringify(msg);
 	}
@@ -191,6 +194,19 @@
 	
 	function mouseUpHandler(e) {
 		mouseDown = false;
+		for (var j = 0; j < buttons.length; j++) {
+			if (buttons[j].isInsideArea(e.clientX, e.clientY)) {
+				debugText += "ASd";
+				if (window.navigator.vibrate) {
+					window.navigator.vibrate(200);
+				}
+				socket.emit("button", messageWithId({
+					button: buttons[j].name,
+					status: 0
+				}));
+				buttonTouches[0] = buttons[j].name;
+			}
+		}
 		socket.emit("joystick", messageWithId(Joystick.getZeroed()));
 	}
 	
@@ -238,6 +254,89 @@
 			if (Joystick.touchId == touch.identifier) {
 				Joystick.updateStickPos(touch.clientX, touch.clientY);
 			}
+		}
+	}
+
+	function getKeyDefs(key) {
+		if (Keyboard.keyDefs[key])
+			return Keyboard.keyDefs[key]
+		return key
+	}
+	
+	function setKey(key, status) {
+		Keyboard.keys[getKeyDefs(key)] = status;
+	}
+	
+	function updateButton(key, status) {
+		if (Keyboard.buttons.has(key)) {
+			console.log(Keyboard.buttons.get(key),status ? 1:0)
+			socket.emit("button", messageWithId({
+						button: Keyboard.buttons.get(key),
+						status: status ? 1:0
+					}));
+		}
+	}
+
+	function keyDownHandler(event) {
+		setKey(event.key, true);
+		socket.emit("joystick", messageWithId(Keyboard.getInput()));
+		updateButton(event.key, true);
+	}
+
+	function keyUpHandler(event) {
+		setKey(event.key, false);
+		socket.emit("joystick", messageWithId(Keyboard.getInput()));
+		updateButton(event.key, false);
+	}
+	
+	var Keyboard = {
+		keys:{
+			"up": false,
+			"down": false,
+			"left": false,
+			"right": false,
+			"space": false,
+			"f": false,
+			"v": false,
+			"mouse": false,
+			"spawn": false,
+			"skill1": false
+		},
+		buttons: new Map([
+			["j", "btn1"],
+			["i", "btn2"],
+			["k", "btn3"],
+			["l", "btn4"],
+			["q", "lt"],
+			["e", "rt"]
+		]),
+		keyDefs:{
+			"w": "up",
+			"ArrowUp": "up",
+			"a": "left",
+			"ArrowLeft": "left",
+			"s": "down",
+			"ArrowDown": "down",
+			"d": "right",
+			"ArrowRight": "right",
+			"f": "f",
+			"v": "v",
+			"e": "spawn",
+			"p": "p",
+			"q": "skill1",
+			"z": "skill2"
+		},
+		getInput:function() {
+			dvx = 0;
+			dvy = 0;
+			if (this.keys["up"])       dvy -= 1;
+			if (this.keys["down"])     dvy += 1;
+			if (this.keys["left"])     dvx -= 1;
+			if (this.keys["right"])    dvx += 1;
+			return {
+				angle: Math.atan2(dvy, dvx),
+				magnitude: Math.sqrt(dvx * dvx + dvy * dvy)
+			};
 		}
 	}
 	

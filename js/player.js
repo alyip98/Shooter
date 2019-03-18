@@ -6,6 +6,15 @@ function Player(id) {
 	this.attackCD = 1000
 	this.attackCDcurr = 0
 	this.weapon = Weapons.Bow
+	this.hpRegenRate = 1;
+	this.weapons = [
+		Weapons.Bow,
+		Weapons.MachineGun,
+		Weapons.Shotgun,
+		Weapons.SplitBow,
+		Weapons.Tesla
+	]
+	this.currentWeapon = 0
 	this.controller = new Controller();
 	this.skills={
 		skill1: new MagicMissile(this),
@@ -22,15 +31,21 @@ function Player(id) {
 	}
 	
     this.etick = this.tick;
+	this.switchWeapon = cdfunc(function(n){
+		this.currentWeapon += n;
+			if (this.currentWeapon < 0)
+				this.currentWeapon += this.weapons.length;
+		this.currentWeapon = (this.currentWeapon) % this.weapons.length;;
+		this.weapon = this.weapons[this.currentWeapon];
+	}, 500)
 	this.tick = function(dt) {
 		//Entity.tick.call(this, dt);
         this.etick(dt);
 		dts = dt / 1000 * 16
 
-		this.shootDir = this.dir;//Math.atan2(my - this.y, mx - this.x);
 
         //moving
-		dvx = 0;
+		/*dvx = 0;
 		dvy = 0;
 		if (keys["up"])       dvy -= 1;
 		if (keys["down"])     dvy += 1;
@@ -40,28 +55,41 @@ function Player(id) {
 		//normalize dvx/y
 		if (dvx != 0 || dvy != 0) {
             this.force(this.speed, Math.atan2(dvy, dvx));
-		}
+		}*/
 		
-		this.force(this.speed * this.controller.getInput("stickMagnitude"), this.controller.getInput("stickAngle"));
+		
+		var magnitude = this.controller.getInput("stickMagnitude")
+		var angle = this.controller.getInput("stickAngle")
+		this.force(this.speed * magnitude, angle);
+		if (magnitude > 0)
+			this.shootDir = this.dir;//Math.atan2(my - this.y, mx - this.x);
+
+		if (this.controller.getInput("lt")) {
+			this.switchWeapon(-1)
+		} else if (this.controller.getInput("rt")) {
+			this.switchWeapon(1)
+		} else {
+			this.switchWeapon.lastTime = 0
+		}
 
 		//shooting
 		if (this.weapon.tick)
             this.weapon.tick(this, dt);
 
-		if (this.controller.getInput("down")) {
+		if (this.controller.getInput("btn1")) {
 			this.weapon.charge(this, dt)
 		} else {
 			this.weapon.release(this);
 		}
 
 		//weapon special
-		if (this.weapon.special && keys["r"]) {
+		if (this.weapon.special && keys["btn2"]) {
 			this.weapon.special(this);
 		}
 
 		if(this.skills.skill1){
 			this.skills.skill1.tick(dt);
-			if(this.controller.getInput("left")){
+			if(this.controller.getInput("btn3")){
 				this.skills.skill1.channel(dt);
 			} else {
 				this.skills.skill1.cancelCast();
@@ -70,12 +98,11 @@ function Player(id) {
 
 		if(this.skills.skill2){
 			this.skills.skill2.tick(dt);
-			if(this.controller.getInput("right")){
+			if(this.controller.getInput("btn4")){
 				this.skills.skill2.channel(dt);
 			} else {
 				this.skills.skill2.cancelCast();
 			}
-
 		}
 
 	}

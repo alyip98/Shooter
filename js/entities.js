@@ -9,6 +9,7 @@ function Entity(){
     this.hp = 100;
 	this.mp=0;
     this.hpMax = 100;
+	this.hpRegenRate = 0.1;
     this.HPBar = new HealthBar(this);
     this.HPBar.width = this.size;
     this.HPBar.height = this.size/16;
@@ -33,6 +34,9 @@ function Entity(){
 
     this.tick = function(dt){
         dts = dt / 1000 * 16
+		
+		this.hp = Math.min(this.hpMax, this.hp + this.hpRegenRate * dt/1000);
+		
     	for(var i=0;i<this.buffs.length;i++){
     		this.buffs[i].tick(dt);
     	}

@@ -16,6 +16,10 @@ var game
 var W, H
 var mx, my
 var socket
+var Mode = {
+	PVE: 0,
+	PVP: 1
+}
 
 
 function init() {
@@ -81,6 +85,7 @@ function newGame() {
 			game.timeToNextSpawn = 0;
 			game.isPaused = false;
 			game.isOver = false;
+			game.mode = Mode.PVP;
 			//spawnEnemy()
 		},
 
@@ -94,13 +99,18 @@ function newGame() {
 
 			//tick player
 			var alive = 0;
+			var livingPlayers = [];
 			for (var i = 0; i < game.players.length; i++) {
 				game.players[i].tick(dt)
 				if (!game.players[i].toRemove) {
 					alive++;
 				}
 			}
-			if (alive == 0 && game.players.length > 0) {
+			if (game.mode == Mode.PVE && alive == 0 && game.players.length > 0) {
+				gameOver();
+			}
+			
+			if (game.mode == Mode.PVP && alive == 1) {
 				gameOver();
 			}
 
@@ -131,14 +141,9 @@ function newGame() {
 				}
 			}
 
-			if (game.counter % 100 == 0) {
+			if (game.counter % 100 == 0 && game.mode == Mode.PVE) {
 				//spawn enemy
 				spawnEnemy()
-			}
-
-			if (keys.spawn && Date.now() > game.timeToNextSpawn) {
-				game.timeToNextSpawn = Date.now() + 1000;
-				spawnEnemy();
 			}
 
 			if (keys.p) {
