@@ -18,6 +18,8 @@ function Player(id) {
 	this.x = W * Math.random();
 	this.y = H * Math.random();
 	this.size = 64;
+	this.dmgText.offsetY = -40;
+	this.dmgText.offsetW = -40;
 	
 	this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
 
@@ -40,6 +42,23 @@ function Player(id) {
 		}
 		//Entity.tick.call(this, dt);
         this.etick(dt);
+		
+		/*
+		Temporary border code
+		*/
+		if (this.x - this.size/2 < 0) {
+			this.x = this.size/2;
+		}
+		if (this.y - this.size/2 < 0) {
+			this.y = this.size/2;
+		}
+		if (this.x + this.size/2 > W) {
+			this.x = W - this.size/2;
+		}
+		if (this.y + this.size/2 > H) {
+			this.y = H - this.size/2;
+		}
+		
 		dts = dt / 1000 * 16
 
 
@@ -118,18 +137,27 @@ function Player(id) {
 			ctx.fill()
 			return;
 		}
-		ctx.fillStyle = this.color;
-		ctx.fillRect(this.x, this.y, 1, 1)
 
-		ctx.strokeStyle = this.color;
-			//ctx.moveTo(this.x-this.size/2,this.y)
+		fs = setFillStyle(this.color);
+		ss = setStrokeStyle(this.color);
+		lw = setLineWidth(4);
+			
+		// outline
 		ctx.beginPath()
-		ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2)
+		ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
 		ctx.closePath()
 		ctx.stroke()
-
-		this.weapon.render(this)
-
+		ctx.lineWidth = tmp;
+		
+		// fill
+		ctx.beginPath()
+		degToPi = Math.PI/180
+		t = 0.1 + this.hp/this.hpMax * 0.9 // Math.sin(Date.now()/1000)/2 + 0.5
+		ctx.arc(this.x, this.y, this.size / 2, t * -180 * degToPi + 90 * degToPi, t * 180 * degToPi + 90 * degToPi)
+		ctx.closePath()
+		ctx.fill()
+		
+		// heading arrow
 		var x1 = this.x + this.size * 1 * Math.cos(this.shootDir)
 		var x2 = x1 - this.size / 4 * Math.cos(this.shootDir - Math.PI / 4)
 		var x3 = x1 - this.size / 4 * Math.cos(this.shootDir + Math.PI / 4)
@@ -145,5 +173,11 @@ function Player(id) {
 		ctx.closePath()
 		ctx.stroke()
 		ctx.fillStyle = tmp
+		
+		setFillStyle(fs);
+		setStrokeStyle(ss);
+		setLineWidth(lw);
+
+		this.weapon.render(this)
 	}
 }

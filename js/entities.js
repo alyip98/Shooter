@@ -10,10 +10,10 @@ function Entity(){
 	this.mp=0;
     this.hpMax = 100;
 	this.hpRegenRate = 0.1;
-    this.HPBar = new HealthBar(this);
+    /*this.HPBar = new HealthBar(this);
     this.HPBar.width = this.size;
     this.HPBar.height = this.size/16;
-    this.HPBar.offsetY = this.size * -0.7;
+    this.HPBar.offsetY = this.size * -0.7;*/
 
     this.dmgText = new DamageText(this);
 
@@ -56,7 +56,7 @@ function Entity(){
     }
 
     this.render = function(){
-        this.HPBar.render();
+        // this.HPBar.render();
         this.dmgText.render();
     }
 

@@ -64,10 +64,16 @@ Weapons.Bow = {
 	},
 	render: function(player) {
 		if (this.currCharge > 0) {
+			ss = setStrokeStyle("white");
+			lw = setLineWidth(3);
+			
 			ctx.beginPath()
-			ctx.arc(player.x, player.y, player.size / 2 * (this.currCharge / this.maxCharge), 0, Math.PI * 2)
+			ctx.arc(player.x, player.y, player.size / 2 * (1 - (this.currCharge / this.maxCharge)), 0, Math.PI * 2)
 			ctx.closePath()
-			ctx.fill()
+			ctx.stroke()
+			
+			setStrokeStyle(ss);
+			setLineWidth(lw);
 		}
 	}
 

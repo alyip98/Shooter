@@ -38,7 +38,7 @@ Projectile.prototype.tick = function(dt){
 
 	var collisions = this.checkCollisions(dt);
 	for(var i=0;i<collisions.length;i++){
-		if (this.hitList.indexOf(collisions[i] != -1))
+		if (this.hitList.indexOf(collisions[i]) == -1)
 			this.collide(collisions[i]);
 	}
 
@@ -46,6 +46,7 @@ Projectile.prototype.tick = function(dt){
 }
 
 Projectile.prototype.collide= function(obj){
+	this.hitList.push(obj);
 	if(this.hp<=0){
 		this.toRemove = true;
 	}
