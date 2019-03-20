@@ -59,6 +59,15 @@ function distsqLineSegment(a, b, c) {
 	return distsqTo(a.add(ab.mul(d)), c)
 }
 
+function shortestDistPointOnLineSegment(a, b, c) {
+    // line segment a, b and point c
+    // find point d on ab such that dc is minimized
+	var ab = b.sub(a)
+	var ac = c.sub(a)
+	var d = Math.max(0, Math.min(1, ac.dot(ab) / Math.pow(ab.len(), 2)))
+	return a.add(ab.mul(d))
+}
+
 function distLineSegments(a, b, c, d) {
     var x1 = a.x;
     var x2 = b.x;

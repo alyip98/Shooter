@@ -54,6 +54,8 @@ class Entity {
 		this.x += vx * dts
 		this.y += vy * dts
 
+		this.checkWallCollisions()
+
         this.dmgText.tick(dt);
     }
 
@@ -90,18 +92,33 @@ class Entity {
 
 	checkWallCollisions() {
 		var currentPos = V(this.x, this.y);
-		var dt = 10
+		var dt = 1/1000
 		var out = []
 		var nextPos = V(this.x + this.v * Math.cos(this.dir) * dt, this.y + this.v * Math.sin(this.dir) * dt)
 		for (var i = 0; i < game.walls.length; i++) {
 			var sides = game.walls[i].poly.sides;
 			for (var j = 0; j < sides.length; j++) {
-				var d = distLineSegments2(currentPos, nextPos, sides[j][0], sides[j][1]);
+				var d = distLineSegments(currentPos, nextPos, sides[j][0], sides[j][1]);
 				// console.log(currentPos, nextPos, sides[j][0], sides[j][1], d)
 				if (d < this.size) {
-					out.push([game.walls[i], d]);
+					out.push([game.walls[i], d, sides[j]]);
+					break;
 				}
 			}
+		}
+
+		out.sort((a, b) => a[1]-b[1])
+
+
+		if (out.length > 0) {
+			var overlap = this.size - out[0][1] + 100
+			// shift to remove overlap
+			var point = shortestDistPointOnLineSegment(currentPos.add(nextPos).mul(0.5), out[0][2][0], out[0][2][1])
+			var angle = point.sub(currentPos).toPolar().angle + Math.PI;
+			console.log(angle, overlap)
+			this.x += Math.cos(angle) * overlap
+			this.y += Math.sin(angle) * overlap
+			this.v *= 0.9
 		}
 	}
 

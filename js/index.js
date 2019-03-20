@@ -102,7 +102,7 @@ class Game {
 		this.isOver = false;
 		this.mode = Mode.PVP;
 
-		this.registerWall(new Wall(100, 100, 100, 100));
+		this.registerWall(new Wall(W/2, H/2, 400, 100));
 		//spawnEnemy()
 	}
 
