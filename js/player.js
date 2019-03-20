@@ -8,7 +8,7 @@ class Player extends Entity {
 		this.attackCD = 1000
 		this.attackCDcurr = 0
 		this.hpRegenRate = 1;
-		this.weapons = Weapons.create()
+		this.weapons = [new SubMachineGun(this)];
 		this.currentWeapon = 0
 		this.weapon = this.weapons[this.currentWeapon];
 		this.controller = new Controller();
@@ -79,12 +79,12 @@ class Player extends Entity {
 
 		//shooting
 		if (this.weapon.tick)
-            this.weapon.tick(this, dt);
+            this.weapon.tick(dt);
 
 		if (this.controller.getInput("btn2")) {
-			this.weapon.charge(this, dt)
+			this.weapon.charge(dt)
 		} else {
-			this.weapon.release(this);
+			this.weapon.release();
 		}
 
 		if(this.skills.skill1){

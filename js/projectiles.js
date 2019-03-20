@@ -36,7 +36,7 @@ class Projectile {
         var collisions = this.checkCollisions(dt);
 		collisions.sort((a, b) => a[1] - b[1]);
         for (var i = 0; i < collisions.length; i++) {
-            if (this.hitList.indexOf(collisions[i]) == -1)
+            if (this.hitList.indexOf(collisions[i][0]) == -1)
                 this.collide(collisions[i][0]);
         }
         this.updatePosition(dt);
@@ -51,7 +51,7 @@ class Projectile {
         }
     }
     updatePosition(dt) {
-        var dts = dt / 1000 * 16 || 1;
+        var dts = dt / 1000;
         this.v *= this.fxn;
         if (Math.abs(this.v) < 4) {
             this.v = 0;
@@ -66,7 +66,7 @@ class Projectile {
     getNewPosition(dt) {
         var vx = this.v * Math.cos(this.dir);
         var vy = this.v * Math.sin(this.dir);
-        var dts = dt / 1000 * 16 || 1;
+        var dts = dt / 1000;
         var bx = this.x + vx * dts;
         var by = this.y + vy * dts;
         var distFrame = this.v * dts;
@@ -98,7 +98,10 @@ class Projectile {
             }
 			var rr = this.size / 2 + targets[i].size / 2;
 			var dts = dt/1000;
-			var dd = distsqLineSegment(V(this.x, this.y), V(this.x + this.v * Math.cos(this.dir) * dts, this.y + this.v * Math.sin(this.dir) * dts), V(targets[i].x, targets[i].y));
+			var currentPos = V(this.x, this.y);
+			var nextPos = V(this.x + this.v * Math.cos(this.dir) * dts, this.y + this.v * Math.sin(this.dir) * dts)
+			var targetPos = V(targets[i].x, targets[i].y)
+			var dd = distsqLineSegment(currentPos, nextPos, targetPos);
 			if (dd < rr * rr) //dist is less than sum of radii
 				out.push([targets[i], Math.sqrt(dd)]);
         }
@@ -111,8 +114,7 @@ class Projectile {
             this.penetrate = false;
         }
         this.knockback = Math.sqrt(this.v) * this.knockbackCoeff;
-		if (thing.knockback)
-        	thing.knockback(this.knockback, this.dir);
+        thing.knockback(this.knockback, this.dir);
         thing.damage(this.damage);
     }
     render() {
