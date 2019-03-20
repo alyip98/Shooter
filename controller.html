@@ -132,9 +132,10 @@
 	}
 	
 	function touchStartHandler(e) {
+		console.log(e)
 		e.preventDefault();
-		for (var i = 0; i < e.touches.length; i++) {
-			var touch = e.touches[i];
+		for (var i = 0; i < e.changedTouches.length; i++) {
+			var touch = e.changedTouches[i];
 			if (Joystick.touchId == -1 && Joystick.isInsideArea(touch.clientX, touch.clientY)) {
 				Joystick.touchId = touch.identifier;
 				if (window.navigator.vibrate) {

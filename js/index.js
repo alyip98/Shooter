@@ -166,6 +166,29 @@ function newGame() {
 				ctx.fillText("Game Over", W/2, H/2);
 				return;
 			}
+			
+			//draw grid
+			var gridSize = 60;
+			var ss = setStrokeStyle("#333");
+			var lw = setLineWidth(1);
+			for (var i = 0; i < W/gridSize; i++) {
+				ctx.beginPath()
+				ctx.moveTo(i * gridSize, 0);
+				ctx.lineTo(i * gridSize, H);
+				ctx.closePath();
+				ctx.stroke();
+			}
+			for (var j = 0; j < H/gridSize; j++) {
+				ctx.beginPath()
+				ctx.moveTo(0, j * gridSize,);
+				ctx.lineTo(W, j * gridSize,);
+				ctx.closePath();
+				ctx.stroke();
+			}
+			
+			setStrokeStyle(ss);
+			setLineWidth(lw);
+			
 			//draw player
 			for (var i = 0; i < game.players.length; i++) {
 				game.players[i].render();

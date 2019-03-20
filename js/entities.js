@@ -60,6 +60,37 @@ function Entity(){
         this.dmgText.render();
     }
 
+	this.physicsCollision = function(other) {
+		var v1 = this.v;
+		var v2 = other.v;
+		var m1 = this.size;
+		var m2 = other.size;
+		var theta1 = this.dir;
+		var theta2 = other.dir;
+		var phi = Math.atan2(other.y - this.y, other.x - this.x);
+		var cr = -(this.getCoords().distTo(other.getCoords()) - this.size - other.size);
+		var temp1 = (v1 * Math.cos(theta1 - phi) * (m1 - m2) + 2 * m2 * v2 * Math.cos(theta2 - phi)) / (m1 + m2);
+		var temp2 = (v2 * Math.cos(theta2 - phi) * (m2 - m1) + 2 * m1 * v1 * Math.cos(theta1 - phi)) / (m1 + m2);
+		var vx1 = temp1 * Math.cos(phi) + v1 * Math.sin(theta1 - phi) * Math.sin(phi);
+		var vy1 = temp1 * Math.sin(phi) + v1 * Math.sin(theta1 - phi) * Math.cos(phi);
+		
+		var vx2 = temp2 * Math.cos(phi) + v2 * Math.sin(theta2 - phi) * Math.sin(phi);
+		var vy2 = temp2 * Math.sin(phi) + v2 * Math.sin(theta2 - phi) * Math.cos(phi);
+		this.setSpeed(vx1, vy1);
+		other.setSpeed(vx2, vy2);
+		
+		this.x -= cr * Math.cos(phi);
+		this.y -= cr * Math.sin(phi);
+		
+		other.x += cr * Math.cos(phi);
+		other.y += cr * Math.sin(phi);
+	}
+	
+	this.setSpeed = function(vx, vy) {
+		this.dir = Math.atan2(vy, vx);
+		this.v = Math.sqrt(vx * vx + vy * vy);
+	}
+
     this.damage = function(damage) {
 		this.hp -= damage
 		//game.misc.push(new PopupText(this.x, this.y, damage.toFixed(2)))

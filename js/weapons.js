@@ -1,6 +1,6 @@
 Weapons.Bow = {
 	name: "Wooden Bow",
-	damage: 7,
+	damage: 10,
 	type: "bow",
 	element: "none",
 	specialProjectileEnabled: false,
@@ -103,7 +103,7 @@ Weapons.MachineGun = {
 		proj.render = function() {
 			tmp = ctx.fillStyle
 			ctx.fillStyle = "yellow"
-			ctx.fillRect(this.x, this.y, 2, 2)
+			ctx.fillRect(this.x, this.y, 4, 4)
 			ctx.fillStyle = tmp
 		}
 		game.projectiles.push(proj)
@@ -153,10 +153,10 @@ Weapons.Shotgun = {
 	element: "none",
 	rof: 1,
 	shots: 10,
-	accuracy: 0.5,
-	ammo: 5,
-	maxAmmo: 5,
-	reloadTime: 2000,
+	accuracy: 0.7,
+	ammo: 3,
+	maxAmmo: 3,
+	reloadTime: 1500,
 	cd: 0,
 	maxCD: 0,
 	canFire: true,
