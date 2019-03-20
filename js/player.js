@@ -13,8 +13,7 @@ class Player extends Entity {
 		this.weapon = this.weapons[this.currentWeapon];
 		this.controller = new Controller();
 		this.skills={
-			skill1: new MagicMissile(this),
-			skill2: new Shockwave(this)
+			skill1: new Dash(this)
 		};
 		this.speed = 5;
 		this.x = W * Math.random();
@@ -40,7 +39,6 @@ class Player extends Entity {
 		this.y = y || H / 2
 	}
 
-
 	tick(dt) {
 		super.tick(dt);
 		if (this.toRemove) {
@@ -63,8 +61,6 @@ class Player extends Entity {
 			this.y = H - this.size/2;
 		}
 
-		var dts = dt / 1000 * 16;
-
 		var magnitude = this.controller.getInput("stickMagnitude")
 		var angle = this.controller.getInput("stickAngle")
 
@@ -73,7 +69,7 @@ class Player extends Entity {
 		if (magnitude > 0)
 			this.shootDir = this.dir;//Math.atan2(my - this.y, mx - this.x);
 
-		if (this.controller.getInput("lt")|| this.controller.getInput("btn3")) {
+		if (this.controller.getInput("lt")) {
 			this.switchWeapon(-1)
 		} else if (this.controller.getInput("rt") || this.controller.getInput("btn4")) {
 			this.switchWeapon(1)
@@ -91,14 +87,9 @@ class Player extends Entity {
 			this.weapon.release(this);
 		}
 
-		//weapon special
-		if (this.weapon.special && keys["btn1"]) {
-			this.weapon.special(this);
-		}
-
 		if(this.skills.skill1){
 			this.skills.skill1.tick(dt);
-			if(this.controller.getInput("btn5")){
+			if(this.controller.getInput("btn3")){
 				this.skills.skill1.channel(dt);
 			} else {
 				this.skills.skill1.cancelCast();
@@ -171,5 +162,7 @@ class Player extends Entity {
 		setLineWidth(lw);
 
 		this.weapon.render(this)
+
+		this.skills.skill1.render();
 	}
 }

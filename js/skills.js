@@ -33,6 +33,9 @@ class Skill {
             this.cast();
         }
     }
+    channelEnd() {
+
+    }
     cancelCast() {
         if (this.channeling) {
             this.reset();
@@ -52,13 +55,12 @@ class Skill {
             this.cdTime += dt;
         }
     }
+    render() {}
 }
 
-
-
-
-
-
+class ChargedSkill extends Skill {
+    // charges like shrapnel
+}
 
 class MagicMissile extends Skill {
     constructor(owner) {
@@ -132,5 +134,37 @@ class ShockwaveProjectile extends Projectile {
     }
 }
 
-var proto = new Projectile;
-Object.setPrototypeOf(ShockwaveProjectile, Projectile.prototype);
+class Dash extends Skill {
+    constructor(owner){
+        super(owner);
+        this.name = "Dash"
+        this.travelDistance = 100;
+        this.cd = 3000;
+        this.effectTime = 0;
+        this.effectDuration = 200;
+        this.force = 1000;
+        this.dir = 0;
+    }
+    cast() {
+        super.cast();
+
+        this.effectTime = this.effectDuration;
+        this.dir = this.owner.shootDir;
+    }
+    render() {
+        var player = this.owner;
+        if (this.cdTime >= this.cd) {
+            var fs = setFillStyle("white");
+            ctx.fillRect(player.x - 5, player.y + player.size/2 + 5, 10, 10);
+            setFillStyle(fs)
+        }
+    }
+    tick(dt) {
+        super.tick(dt);
+        this.effectTime -= dt;
+
+        if (this.effectTime > 0) {
+            this.owner.force(this.force * dt/1000, this.dir)
+        }
+    }
+}
