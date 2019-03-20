@@ -31,7 +31,7 @@ app.get('/css/:url', function(req, res){
 io.on('connection', function(socket){
 	socket.on('joystick', function(msg){
 		console.log("joystick: " + msg);
-		
+
 		if (gameSocket) {
 			gameSocket.emit('joystick', msg);
 		}
@@ -40,7 +40,7 @@ io.on('connection', function(socket){
 	socket.on('button', function(msg){
 		// io.emit('chat message', msg);
 		console.log("button: " + msg);
-		
+
 		if (gameSocket) {
 			gameSocket.emit('button', msg);
 		}
@@ -59,14 +59,16 @@ io.on('connection', function(socket){
 		console.log("player joining: " + msg);
 		if (gameSocket) {
 			gameSocket.emit("playerJoin", msg);
+			socket.emit("joinSuccess");
 		}
 	});
 
 	socket.on('clientRejoin', function(msg) {
 		players[msg] = socket.id;
-		console.log("player joining: " + msg);
+		console.log("player rejoining: " + msg);
 		if (gameSocket) {
-			gameSocket.emit("playerJoin", msg);
+			gameSocket.emit("playerRejoin", msg);
+			socket.emit("joinSuccess", "");
 		}
 	});
 	// console.log("user connected");

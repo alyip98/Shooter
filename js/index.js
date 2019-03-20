@@ -54,7 +54,12 @@ function setupSocket() {
 
 	socket.on("playerJoin", function(msg) {
 		console.log("player joining: " + msg);
-		game.addPlayer(msg);
+		game.addPlayer(JSON.parse(msg));
+	});
+
+	socket.on("playerRejoin", function(msg) {
+		console.log("player rejoining: " + msg);
+		game.addPlayer(JSON.parse(msg));
 	});
 
 	socket.on("joystick", function(msg) {
@@ -182,7 +187,7 @@ class Game {
 
 		if (this.isOver) {
 			ctx.fillStyle = "white";
-			ctx.fillText("this Over", W/2, H/2);
+			ctx.fillText("Game Over", W/2, H/2);
 			return;
 		}
 
@@ -238,7 +243,10 @@ class Game {
 	}
 
 	addPlayer(msg) {
-		if (this.getPlayerById(msg) != null) {
+		console.log("adding player", msg);
+		var id = msg.sessionId
+		if (this.getPlayerById(id) != null) {
+			console.log("player already exists", id)
 			return;
 		}
 		var player = new Player(msg);

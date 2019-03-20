@@ -4,6 +4,7 @@ Weapons.Bow = {
 	type: "bow",
 	element: "none",
 	specialProjectileEnabled: false,
+	speedPenalty: 0.9,
 	fire: function(player) {
 		var proj = new Arrow(player.x, player.y, 700 * this.currCharge/this.maxCharge, player.shootDir + (-0.5 + Math.random()) * Math.PI / 100, player);
 		proj.damage = (this.currCharge / 750 + 1) * this.damage;
@@ -38,7 +39,7 @@ Weapons.Bow = {
 			jitterX = (Math.random() - 0.5) * 3
 			jitterY = (Math.random() - 0.5) * 3
 		}
-		drawBow(player.x + jitterX, player.y + jitterY, player.shootDir, player.size * 0.4, this.currCharge/this.maxCharge);
+		this.drawBow(player.x + jitterX, player.y + jitterY, player.shootDir, player.size * 0.4, this.currCharge/this.maxCharge);
 
 		/*if (this.currCharge > 0) {
 			ss = setStrokeStyle("white");
@@ -52,48 +53,47 @@ Weapons.Bow = {
 			setStrokeStyle(ss);
 			setLineWidth(lw);
 		}*/
+	},
+	drawBow: function(x, y, dir, size, t) {
+		var fs = setFillStyle("white");
+		var lw = setLineWidth(2);
+		var ss = setStrokeStyle("white");
+
+		var arcDeg = 145;
+		var degToRad = Math.PI / 180;
+		var a1 = dir - degToRad * arcDeg/2;
+		var a2 = dir + degToRad * arcDeg/2;
+		var t2 = Math.pow(t + 0.1, 1);
+		var k = 0.5;
+		if (t2 > k) t2 = k + (t2 - k)/t2;
+		var stringDrawDist = size * (0.5 - t2);
+		var arrowLength = size * 1.6;
+
+		// Bow arc
+		ctx.beginPath();
+		ctx.arc(x, y, size, a1, a2);
+		ctx.stroke();
+		ctx.closePath();
+
+		// Bow string
+		ctx.beginPath();
+		ctx.moveTo(x + size * Math.cos(a1), y + size * Math.sin(a1));
+		ctx.lineTo(x + stringDrawDist * Math.cos(dir), y + stringDrawDist * Math.sin(dir));
+		ctx.lineTo(x + size * Math.cos(a2), y + size * Math.sin(a2));
+		ctx.stroke();
+		ctx.closePath();
+
+		// Arrow
+		ctx.beginPath();
+		ctx.moveTo(x + stringDrawDist * Math.cos(dir), y + stringDrawDist * Math.sin(dir));
+		ctx.lineTo(x + (stringDrawDist + arrowLength) * Math.cos(dir), y + (stringDrawDist + arrowLength) * Math.sin(dir));
+		ctx.stroke();
+		ctx.closePath();
+
+		setFillStyle(fs);
+		setLineWidth(lw);
+		setStrokeStyle(ss);
 	}
-}
-
-function drawBow(x, y, dir, size, t) {
-	var fs = setFillStyle("white");
-	var lw = setLineWidth(2);
-	var ss = setStrokeStyle("white");
-
-	var arcDeg = 145;
-	var degToRad = Math.PI / 180;
-	var a1 = dir - degToRad * arcDeg/2;
-	var a2 = dir + degToRad * arcDeg/2;
-	var t2 = Math.pow(t + 0.1, 1);
-	var k = 0.5;
-	if (t2 > k) t2 = k + (t2 - k)/t2;
-	var stringDrawDist = size * (0.5 - t2);
-	var arrowLength = size * 1.6;
-
-	// Bow arc
-	ctx.beginPath();
-	ctx.arc(x, y, size, a1, a2);
-	ctx.stroke();
-	ctx.closePath();
-
-	// Bow string
-	ctx.beginPath();
-	ctx.moveTo(x + size * Math.cos(a1), y + size * Math.sin(a1));
-	ctx.lineTo(x + stringDrawDist * Math.cos(dir), y + stringDrawDist * Math.sin(dir));
-	ctx.lineTo(x + size * Math.cos(a2), y + size * Math.sin(a2));
-	ctx.stroke();
-	ctx.closePath();
-
-	// Arrow
-	ctx.beginPath();
-	ctx.moveTo(x + stringDrawDist * Math.cos(dir), y + stringDrawDist * Math.sin(dir));
-	ctx.lineTo(x + (stringDrawDist + arrowLength) * Math.cos(dir), y + (stringDrawDist + arrowLength) * Math.sin(dir));
-	ctx.stroke();
-	ctx.closePath();
-
-	setFillStyle(fs);
-	setLineWidth(lw);
-	setStrokeStyle(ss);
 }
 
 Weapons.MachineGun = {
@@ -103,10 +103,11 @@ Weapons.MachineGun = {
 	element: "none",
 	rof: 1,
 	heat: 0,
+	speedPenalty: 0.4,
 	maxHeat: 100,
 	cooling: 40,
-	overheatPenalty: 0.7,
-	heating: 1.6,
+	overheatPenalty: 0.5,
+	heating: 0.7,
 	canFire: true,
 	released: true,
 	fire: function(player) {
@@ -118,7 +119,7 @@ Weapons.MachineGun = {
 	},
 	charge: function(player, dt) {
 		if (!this.canFire) return;
-		if (!this.released) return;
+		this.released = false;
 		for (var i = 0; i < this.rof; i++) {
 			this.fire(player)
 			this.heat += this.heating
@@ -142,10 +143,11 @@ Weapons.MachineGun = {
 		}
 	},
 	tick: function(player, dt) {
-		if (this.canFire && !keys["mouse"])
+		if (this.canFire && this.released) {
 			this.heat = Math.max(this.heat - dt * this.cooling/1000, 0)
-		else
+		} else if (!this.canFire) {
 			this.heat = Math.max(this.heat - dt * this.cooling/1000 * this.overheatPenalty, 0)
+		}
 
 		if (this.heat == 0) {
 			this.canFire = true
@@ -162,6 +164,7 @@ Weapons.Shotgun = {
 	rof: 1,
 	shots: 10,
 	accuracy: 0.7,
+	speedPenalty: 0.8,
 	ammo: 3,
 	maxAmmo: 3,
 	reloadTime: 1500,

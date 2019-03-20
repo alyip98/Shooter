@@ -1,8 +1,9 @@
 var COLORS = ["#001f3f", "#0074D9", "#7FDBFF", "#39CCCC", "#3D9970", "#2ECC40", "#01FF70", "#FFDC00", "#FF851B", "#FF4136", "#85144b", "#F012BE", "#B10DC9"];
 class Player extends Entity {
-	constructor(id) {
+	constructor(params) {
 		super();
-		this.id = id;
+		this.id = params.sessionId;
+		this.name = params.savedName;
 		this.shootDir = 0
 		this.attackCD = 1000
 		this.attackCDcurr = 0
@@ -21,6 +22,7 @@ class Player extends Entity {
 		this.size = 64;
 		this.dmgText.offsetY = -40;
 		this.dmgText.offsetW = -40;
+		this.score = 0;
 
 		this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
 
@@ -65,7 +67,9 @@ class Player extends Entity {
 
 		var magnitude = this.controller.getInput("stickMagnitude")
 		var angle = this.controller.getInput("stickAngle")
-		this.force(this.speed * magnitude, angle);
+
+		var effectiveSpeed = this.speed * this.weapon.speedPenalty;
+		this.force(effectiveSpeed * magnitude, angle);
 		if (magnitude > 0)
 			this.shootDir = this.dir;//Math.atan2(my - this.y, mx - this.x);
 
@@ -114,26 +118,29 @@ class Player extends Entity {
 
 	render() {
         super.render();
-		var tmp = ctx.fillStyle
 		if (this.toRemove) {
-			ctx.fillStyle = "grey";
+			var fs = setFillStyle("grey");
 			ctx.beginPath()
 			ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2)
 			ctx.closePath()
 			ctx.fill()
+			setFillStyle(fs);
 			return;
 		}
+		var fs = setFillStyle("white");
 
-		var fs = setFillStyle(this.color);
+		var textWidth = ctx.measureText(this.name).width;
+		ctx.fillText(this.name, this.x - textWidth/2, this.y - this.size/2 - 10);
+
+		setFillStyle(this.color);
 		var ss = setStrokeStyle(this.color);
-		var lw = setLineWidth(4);
+		var lw = setLineWidth(4)
 
 		// outline
 		ctx.beginPath()
 		ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
 		ctx.closePath()
 		ctx.stroke()
-		ctx.lineWidth = tmp;
 
 		// fill
 		ctx.beginPath()
@@ -158,7 +165,6 @@ class Player extends Entity {
 		ctx.lineTo(x3, y3)
 		ctx.closePath()
 		ctx.stroke()
-		ctx.fillStyle = tmp
 
 		setFillStyle(fs);
 		setStrokeStyle(ss);

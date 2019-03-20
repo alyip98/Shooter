@@ -23,7 +23,7 @@
           window.scrollTo(0, document.body.scrollHeight);
         });
       });*/
-	
+
 	var c, ctx;
 	var W, H;
 	var socket;
@@ -32,14 +32,17 @@
 	var buttonTouches = {};
 	var debugText = "asd";
 	var mouseDown = false;
-	
+	var id = -1;
+	var savedName = "";
+	var sdata = {};
+
 	function init() {
 		buildUI();
 		establishConnection();
 		registerHandlers();
 		render();
 	}
-	
+
 	function buildUI() {
 		c = document.getElementById("display");
 		ctx = c.getContext("2d");
@@ -47,50 +50,79 @@
 		H = window.innerHeight;
 		c.width = W;
 		c.height = H;
-		Joystick.y = H * 0.7;
-		
-		var x = W - 100;
-		var y = H * 0.7;
-		var separation = 50;
-		var upButton = new Button("btn1", x, y - separation, 25, "green");
-		var downButton = new Button("btn2", x, y + separation, 25, "blue");
-		var leftButton = new Button("btn3", x - separation, y, 25, "purple");
-		var rightButton = new Button("btn4", x + separation, y, 25, "red");
-		
+		var size = Math.min(W/2, H/2, 150)
+		Joystick.y = H - size
+		Joystick.x = size;
+
+		var x = W - size;
+		var y = H - size;
+		var separation = size/2;
+		var upButton = new Button("btn1", x, y - separation, 25, "#393");
+		var downButton = new Button("btn2", x, y + separation, 25, "#33c");
+		var leftButton = new Button("btn3", x - separation, y, 25, "#cc3");
+		var rightButton = new Button("btn4", x + separation, y, 25, "#c33");
+
 		buttons = [upButton, downButton, leftButton, rightButton];
 	}
-	
+
 	function establishConnection() {
 		socket = io();
-	
-		var cookie = document.cookie;
+
+		var hasValidData = getSavedData();
+
 		// valid session stored
-		if (parseInt(cookie) >= 0) {
-			socket.emit("clientRejoin", cookie);
+		if (hasValidData) {
+			socket.emit("clientRejoin", JSON.stringify(sdata));
 		} else {
-			cookie = Math.floor(Math.random() * 1000000000);
-			document.cookie = cookie;
-			socket.emit("clientNew", cookie);
+			sid = Math.floor(Math.random() * 1000000000);
+			storeSavedData({sessionId: sid, savedName: prompt("Display name: ")});
+			socket.emit("clientJoin", JSON.stringify(sdata));
 		}
-		
+
 		socket.on("joinSuccess", function(msg) {
 			console.log("successfully joined", msg);
 		});
 	}
-	
+
+	function getSavedData() {
+		var obj;
+		try {
+			obj = JSON.parse(localStorage["shooterData"]);
+		} catch (err) {
+			console.log(err)
+			return false
+		}
+		if (obj.sessionId && obj.expiryTime && obj.expiryTime > Date.now()) {
+			sdata = obj;
+			return true
+		}
+		return false
+	}
+
+	function storeSavedData(data) {
+		console.log("saving", data)
+		var obj = {};
+		obj.savedName = data.savedName;
+		obj.sessionId = data.sessionId;
+		obj.expiryTime = Date.now() + 3600 * 1000;
+		localStorage["shooterData"] = JSON.stringify(obj);
+		sdata = obj;
+		return obj
+	}
+
 	function registerHandlers() {
 		c.ontouchstart = touchStartHandler;
 		c.ontouchmove = touchMoveHandler;
 		c.ontouchend = touchEndHandler;
-		
+
 		c.onmousedown = mouseDownHandler;
 		c.onmousemove = mouseMoveHandler;
 		c.onmouseup = mouseUpHandler;
-		
+
 		document.body.onkeydown = keyDownHandler;
 		document.body.onkeyup = keyUpHandler;
 	}
-	
+
 	function render() {
 		ctx.fillStyle = "black";
 		ctx.fillRect(0, 0, W, H);
@@ -99,25 +131,25 @@
 			var p = points[i];
 			ctx.fillRect(p[0], p[1], 5, 5);
 		}
-		
+
 		// ctx.fillText(debugText, W/2, H/2);
-		
+
 		// Joystick
 		ctx.strokeStyle = "white";
 		ctx.beginPath();
 		ctx.arc(Joystick.x, Joystick.y, Joystick.r, 0, Math.PI * 2, true);
 		ctx.closePath();
 		ctx.stroke();
-		
+
 		ctx.beginPath();
 		ctx.arc(Joystick.x, Joystick.y, Joystick.r / 2, 0, Math.PI * 2, true);
 		ctx.closePath();
 		ctx.stroke();
-		
+
 		if (Joystick.touchId != -1) {
 			ctx.fillRect(Joystick.stickX, Joystick.stickY, 10, 10);
 		}
-		
+
 		// Buttons
 		for (var i = 0; i < buttons.length; i++) {
 			ctx.fillStyle = buttons[i].color;
@@ -126,11 +158,11 @@
 			ctx.closePath();
 			ctx.fill();
 		}
-		
-		
+
+
 		window.requestAnimationFrame(render);
 	}
-	
+
 	function touchStartHandler(e) {
 		console.log(e)
 		e.preventDefault();
@@ -142,7 +174,7 @@
 						window.navigator.vibrate(50);
 					}
 			}
-			
+
 			for (var j = 0; j < buttons.length; j++) {
 				if (buttons[j].isInsideArea(touch.clientX, touch.clientY)) {
 					debugText += "ASd";
@@ -159,13 +191,13 @@
 		}
 		// updatePoints(e);
 	}
-	
+
 	function messageWithId(msg) {
 		// console.log(msg)
-		msg.id = document.cookie;
+		msg.id = sdata.sessionId;
 		return JSON.stringify(msg);
 	}
-	
+
 	function mouseDownHandler(e) {
 		e.preventDefault();
 		if (Joystick.isInsideArea(e.clientX, e.clientY)) {
@@ -176,7 +208,7 @@
 			console.log("not in area")
 			mouseDown = false;
 		}
-		
+
 		for (var j = 0; j < buttons.length; j++) {
 			if (buttons[j].isInsideArea(e.clientX, e.clientY)) {
 				debugText += "ASd";
@@ -191,13 +223,13 @@
 			}
 		}
 	}
-	
+
 	function mouseMoveHandler(e) {
 		if(!mouseDown) return;
 		Joystick.updateStickPos(e.clientX, e.clientY);
 		socket.emit("joystick", messageWithId(Joystick.getInput()));
 	}
-	
+
 	function mouseUpHandler(e) {
 		mouseDown = false;
 		for (var j = 0; j < buttons.length; j++) {
@@ -215,7 +247,7 @@
 		}
 		socket.emit("joystick", messageWithId(Joystick.getZeroed()));
 	}
-	
+
 	function touchMoveHandler(e) {
 		e.preventDefault();
 		updatePoints(e);
@@ -223,7 +255,7 @@
 			socket.emit("joystick", messageWithId(Joystick.getInput()));
 		}
 	}
-	
+
 	function touchEndHandler(e) {
 		e.preventDefault();
 		for (var i = 0; i < e.changedTouches.length; i++) {
@@ -232,7 +264,7 @@
 				Joystick.touchId = -1;
 				socket.emit("joystick", messageWithId(Joystick.getZeroed()));
 			}
-			
+
 			if (buttonTouches[touch.identifier]) {
 				socket.emit("button", messageWithId({
 						button: buttonTouches[touch.identifier],
@@ -242,7 +274,7 @@
 			}
 		}
 	}
-	
+
 	function orientationChangeHandler(e) {
 		W = window.innerWidth;
 		H = window.innerHeight;
@@ -251,7 +283,7 @@
 		Joystick.y = H * 0.7;
 		render();
 	}
-	
+
 	function updatePoints(e) {
 		points = [];
 		for (var i = 0; i < e.touches.length; i++) {
@@ -268,11 +300,11 @@
 			return Keyboard.keyDefs[key]
 		return key
 	}
-	
+
 	function setKey(key, status) {
 		Keyboard.keys[getKeyDefs(key)] = status;
 	}
-	
+
 	function updateButton(key, status) {
 		if (Keyboard.buttons.has(key)) {
 			console.log(Keyboard.buttons.get(key),status ? 1:0)
@@ -294,7 +326,7 @@
 		socket.emit("joystick", messageWithId(Keyboard.getInput()));
 		updateButton(event.key, false);
 	}
-	
+
 	var Keyboard = {
 		keys:{
 			"up": false,
@@ -345,7 +377,7 @@
 			};
 		}
 	}
-	
+
 	var Joystick = {
 		x: 100,
 		y: 100,
@@ -355,25 +387,25 @@
 		stickY: 0,
 		angle: 0,
 		magnitude: 0,
-		
+
 		isInsideArea: function(px, py) {
 			return Math.pow(px - this.x, 2) + Math.pow(py - this.y, 2) <= Math.pow(this.r, 2);
 		},
-		
+
 		updateStickPos: function(px, py) {
 			this.angle = Math.atan2(py - this.y, px - this.x);
 			this.magnitude = Math.min(Math.sqrt(Math.pow(px - this.x, 2) + Math.pow(py - this.y, 2)), this.r) / this.r;
 			this.stickX = this.x + Math.cos(this.angle) * this.magnitude * this.r;
 			this.stickY = this.y + Math.sin(this.angle) * this.magnitude * this.r;
 		},
-		
+
 		getInput: function() {
 			return {
 				angle: this.angle,
 				magnitude: this.magnitude
 			};
 		},
-		
+
 		getZeroed: function() {
 			return {
 				angle: 0,
@@ -381,7 +413,7 @@
 			}
 		}
 	}
-	
+
 	var Button = function(name, x, y, r, color) {
 		this.name = name;
 		this.x = x;
@@ -392,7 +424,7 @@
 			return Math.pow(px - this.x, 2) + Math.pow(py - this.y, 2) <= Math.pow(this.r, 2);
 		}
 	}
-	
+
 	window.onload = init;
 	window.addEventListener("orientationchange", orientationChangeHandler, false);
     </script>
