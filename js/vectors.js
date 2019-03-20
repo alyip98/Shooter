@@ -53,13 +53,35 @@ function distsqTo(a, b) {
 }
 
 function distsqLineSegment(a, b, c) {
-	//line:r=a+(b-a)d
-	//ab dot ac^ = (b-a).(c-a)/len(ac)
 	ab = b.sub(a)
 	ac = c.sub(a)
 	d = Math.max(0, Math.min(1, ac.dot(ab) / Math.pow(ab.len(), 2)))
-	dd = distsqTo(a.add(ab.mul(d)), c)
-		//console.log("!",a,b,c,ab.mul(d),a.add(ab.mul(d)),dd)
-		//console.log("!!",ac,ab,ac.dot(ab)/ab.len())
-	return dd
+	return distsqTo(a.add(ab.mul(d)), c)
+}
+
+class Polygon {
+    constructor(...args) {
+        this.numSides = args.length;
+        this.vertices = [...args];
+    }
+}
+
+class Line {
+    constructor(start, end) {
+        this.start = start;
+        this.end = end;
+    }
+}
+
+function pointInRectangle(point, rect) {
+    var AB = rect.vertices[1].sub(rect.vertices[0]);
+    var AD = rect.vertices[3].sub(rect.vertices[0]);
+    var AP = point.sub(rect.vertices[0]);
+    var APxAB = AP.dot(AB);
+    var APxAB = AP.dot(AD);
+    return (0 <= APxAB && APxAB <= AB.dot(AB)) && (0 <= APxAD && APxAD <= AD.dot(AD))
+}
+
+function intersectCircle(circle, line) {
+    return distsqLineSegment
 }

@@ -32,10 +32,12 @@ class Projectile {
             this.toRemove = true;
             return;
         }
+
         var collisions = this.checkCollisions(dt);
+		collisions.sort((a, b) => a[1] - b[1]);
         for (var i = 0; i < collisions.length; i++) {
             if (this.hitList.indexOf(collisions[i]) == -1)
-                this.collide(collisions[i]);
+                this.collide(collisions[i][0]);
         }
         this.updatePosition(dt);
     }
@@ -94,54 +96,11 @@ class Projectile {
             if (targets[i].toRemove) {
                 continue;
             }
-            var rr = this.size / 2 + targets[i].size / 2;
-            var dx = targets[i].x - this.x;
-            var dy = targets[i].y - this.y;
-            var distsq = dx * dx + dy * dy;
-            var distFrame = this.v * dt;
-            var np = this.getNewPosition(dt);
-            var ax = this.x;
-            var ay = this.y;
-            var bx = np[0];
-            var by = np[1];
-            if (distsq < rr * rr) //basic distance test
-            {
-                out.push(targets[i]);
-                /*
-                this.impact(targets[i])
-                    //PPT(targets[i].x-5,targets[i].y,"!");
-                if (!this.penetrate)
-                    return;
-                    */
-            }
-            else if (distsq < Math.pow(distFrame, 2)) { //if within reasonable distance, check raycast
-                var AB = Math.sqrt(Math.pow(ax - bx, 2) + Math.pow(ay - by, 2)); //
-                var x1 = ax;
-                var y1 = ay;
-                var x2 = bx;
-                var y2 = by;
-                var x3 = targets[i].x;
-                var y3 = targets[i].y;
-                var area = Math.abs(0.5 * (x1 * y2 - y1 * x2 + x2 * y3 - y2 * x3 + x3 * y1 - y3 * x1));
-                var length = area / AB * 2; //use fancy math to figure out perpendicular distance from target to path
-                // console.log(x1, y1, x2, y2, x3, y3, area, length);
-                //console.log("size", targets[i].size, "dist", distsq);
-                if (length < rr) {
-                    dd = distsqLineSegment(V(ax, ay), V(bx, by), V(targets[i].x, targets[i].y));
-                    //console.log("dd",dd,"{",ax,ay,"}","{",bx,by,"}","{",targets[i].x,targets[i].y,"}")
-                    if (dd < rr * rr) //dist is less than sum of radii
-                    {
-                        out.push(targets[i]);
-                        //PPT(x3,y3-10,"~~~~~~~~~~~~~~~~~~~");
-                        /*this.impact(targets[i])
-                        if (!this.penetrate)
-                            return;*/
-                    }
-                }
-            }
-        }
-        if (out.length > 0) {
-            console.log(out);
+			var rr = this.size / 2 + targets[i].size / 2;
+			var dts = dt/1000;
+			var dd = distsqLineSegment(V(this.x, this.y), V(this.x + this.v * Math.cos(this.dir) * dts, this.y + this.v * Math.sin(this.dir) * dts), V(targets[i].x, targets[i].y));
+			if (dd < rr * rr) //dist is less than sum of radii
+				out.push([targets[i], Math.sqrt(dd)]);
         }
         return out;
     }
@@ -152,7 +111,8 @@ class Projectile {
             this.penetrate = false;
         }
         this.knockback = Math.sqrt(this.v) * this.knockbackCoeff;
-        thing.knockback(this.knockback, this.dir);
+		if (thing.knockback)
+        	thing.knockback(this.knockback, this.dir);
         thing.damage(this.damage);
     }
     render() {
