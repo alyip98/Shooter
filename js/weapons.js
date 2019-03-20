@@ -66,12 +66,12 @@ Weapons.Bow = {
 		if (this.currCharge > 0) {
 			ss = setStrokeStyle("white");
 			lw = setLineWidth(3);
-			
+
 			ctx.beginPath()
 			ctx.arc(player.x, player.y, player.size / 2 * (1 - (this.currCharge / this.maxCharge)), 0, Math.PI * 2)
 			ctx.closePath()
 			ctx.stroke()
-			
+
 			setStrokeStyle(ss);
 			setLineWidth(lw);
 		}
@@ -386,7 +386,7 @@ Weapons.Tesla = {
 			ctx.closePath()
 			ctx.fill()
 		}*/
-		
+
 		ctx.beginPath()
 		ctx.arc(player.x, player.y, player.size / 2 * Math.min(this.mana/1000, 1), 0, Math.PI * 2);
 		ctx.closePath()
@@ -416,7 +416,7 @@ Weapons.create = function() {
 	var bowCopy = {}
 	var mgCopy = {}
 	var sgCopy = {}
-	
+
 	Object.assign(bowCopy, Weapons.Bow)
 	Object.assign(mgCopy, Weapons.MachineGun)
 	Object.assign(sgCopy, Weapons.Shotgun)

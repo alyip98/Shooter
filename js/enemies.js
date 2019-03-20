@@ -1,27 +1,22 @@
-
-function Enemy() {
-    Entity.call(this);
-	this.size = 32
-	this.v = 0
-	this.dir = 0
-	this.facingDir = 0
-	this.hp = 10;
-    this.hpMax = 10;
-	this.turnrate = 1
-	this.attack = 0.1;
-	this.init = function(x, y) {
+class Enemy extends Entity {
+    constructor(){
+        super();
+    	this.size = 32
+    	this.hp = 10;
+        this.hpMax = 10;
+    	this.turnrate = 1
+    	this.attack = 0.1;
+        this.target = -1;
+    }
+	init(x, y) {
 		this.x = x || W / 2
 		this.y = y || H / 2
 	}
-    this.etick = this.tick;
-	this.target = -1;
-	this.tick = function(dt) {
-        this.etick(dt);
-		dts = dt / 1000 * 16 || 1
-		//var acc = 5
-			//friction
 
-		//turning
+	tick(dt) {
+        super.tick(dt);
+		var dts = dt / 1000 * 16 || 1
+
 		if (this.target == -1) {
 			this.target = Math.floor(Math.random() * game.players.length);
 		}
@@ -43,27 +38,26 @@ function Enemy() {
 		//walking
 
 		//acc = 2
-		accCoeff = 2/5;
-		ax = this.speed * accCoeff * Math.cos(this.facingDir) * dts
-		ay = this.speed * accCoeff * Math.sin(this.facingDir) * dts
-		vx += ax
-		vy += ay
+		var accCoeff = 2/5;
+		var ax = this.speed * accCoeff * Math.cos(this.facingDir) * dts
+		var ay = this.speed * accCoeff * Math.sin(this.facingDir) * dts
+		var vx = ax
+		var vy = ay
 
 		this.x += vx * dts
 		this.y += vy * dts
 
 		this.dir = Math.atan2(vy, vx)
 		this.v = Math.sqrt(vx * vx + vy * vy)
-		
+
 		// dmg
 		if (this.getCoords().distTo(player.getCoords()) <= this.size + player.size) {
 			player.damage(this.attack);
 		}
 	}
 
-    this.erender = this.render;
-	this.render = function() {
-        this.erender();
+	render() {
+        super.render();
 		ctx.strokeStyle = "red";
 		ctx.beginPath();
 		ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);

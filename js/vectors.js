@@ -1,51 +1,43 @@
-function Vector(x, y) {
-	this.x = x
-	this.y = y
-	this.dot = function(v) {
-		return this.x * v.x + this.y * v.y
-	}
-
-	this.distTo = function(v) {
-		return Math.sqrt(Math.pow(this.x - v.x, 2) + Math.pow(this.y - v.y, 2))
-	}
-
-	this.add = function(v) {
-		return V(this.x + v.x, this.y + v.y)
-	}
-
-	this.mul = function(s) {
-		return V(this.x * s, this.y * s)
-	}
-
-	this.sub = function(v) {
-		return V(this.x - v.x, this.y - v.y)
-	}
-
-	this.len = function() {
-		return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2))
-	}
-}
-
-Vector.prototype.getLength = function(){
-    return this.len();
-}
-
-Vector.prototype.getAngle = function(v){
-    return Math.acos(this.dot(v)/(this.len()*v.len()));
-}
-
-Vector.prototype.getUnitVector = function(){
-	return this.mul(1/this.getLength());
-}
-
-Vector.prototype.getNormalVector = function(){
-	return new Vector(this.y*-1, this.x);
-}
-
-Vector.prototype.toPolar=function(){
-	this.length = this.getLength();
-	this.angle = Math.atan2(this.y, this.x);
-	return this;
+class Vector {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    dot(v) {
+        return this.x * v.x + this.y * v.y;
+    }
+    distTo(v) {
+        return Math.sqrt(Math.pow(this.x - v.x, 2) + Math.pow(this.y - v.y, 2));
+    }
+    add(v) {
+        return V(this.x + v.x, this.y + v.y);
+    }
+    mul(s) {
+        return V(this.x * s, this.y * s);
+    }
+    sub(v) {
+        return V(this.x - v.x, this.y - v.y);
+    }
+    len() {
+        return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
+    }
+    getLength() {
+        return this.len();
+    }
+    getAngle(v) {
+        return Math.acos(this.dot(v) / (this.len() * v.len()));
+    }
+    getUnitVector() {
+        return this.mul(1 / this.getLength());
+    }
+    getNormalVector() {
+        return new Vector(this.y * -1, this.x);
+    }
+    toPolar() {
+        this.length = this.getLength();
+        this.angle = Math.atan2(this.y, this.x);
+        return this;
+    }
 }
 
 function VP(len, ang){

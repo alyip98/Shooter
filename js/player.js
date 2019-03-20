@@ -1,48 +1,50 @@
 var COLORS = ["#001f3f", "#0074D9", "#7FDBFF", "#39CCCC", "#3D9970", "#2ECC40", "#01FF70", "#FFDC00", "#FF851B", "#FF4136", "#85144b", "#F012BE", "#B10DC9"];
-function Player(id) {
-	Entity.call(this);
-	this.id = id;
-	this.shootDir = 0
-	this.attackCD = 1000
-	this.attackCDcurr = 0
-	this.hpRegenRate = 1;
-	this.weapons = Weapons.create()
-	this.currentWeapon = 0
-	this.weapon = this.weapons[this.currentWeapon];
-	this.controller = new Controller();
-	this.skills={
-		skill1: new MagicMissile(this),
-		skill2: new Shockwave(this)
-	};
-	this.speed = 5;
-	this.x = W * Math.random();
-	this.y = H * Math.random();
-	this.size = 64;
-	this.dmgText.offsetY = -40;
-	this.dmgText.offsetW = -40;
-	
-	this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+class Player extends Entity {
+	constructor(id) {
+		super();
+		this.id = id;
+		this.shootDir = 0
+		this.attackCD = 1000
+		this.attackCDcurr = 0
+		this.hpRegenRate = 1;
+		this.weapons = Weapons.create()
+		this.currentWeapon = 0
+		this.weapon = this.weapons[this.currentWeapon];
+		this.controller = new Controller();
+		this.skills={
+			skill1: new MagicMissile(this),
+			skill2: new Shockwave(this)
+		};
+		this.speed = 5;
+		this.x = W * Math.random();
+		this.y = H * Math.random();
+		this.size = 64;
+		this.dmgText.offsetY = -40;
+		this.dmgText.offsetW = -40;
 
-	this.init = function(x, y) {
+		this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+
+		this.switchWeapon = cdfunc(function(n){
+			this.currentWeapon += n;
+				if (this.currentWeapon < 0)
+					this.currentWeapon += this.weapons.length;
+			this.currentWeapon = (this.currentWeapon) % this.weapons.length;;
+			this.weapon = this.weapons[this.currentWeapon];
+		}, 500)
+	}
+
+	init(x, y) {
 		this.x = x || W / 2
 		this.y = y || H / 2
 	}
-	
-    this.etick = this.tick;
-	this.switchWeapon = cdfunc(function(n){
-		this.currentWeapon += n;
-			if (this.currentWeapon < 0)
-				this.currentWeapon += this.weapons.length;
-		this.currentWeapon = (this.currentWeapon) % this.weapons.length;;
-		this.weapon = this.weapons[this.currentWeapon];
-	}, 500)
-	this.tick = function(dt) {
+
+
+	tick(dt) {
+		super.tick(dt);
 		if (this.toRemove) {
 			return;
 		}
-		//Entity.tick.call(this, dt);
-        this.etick(dt);
-		
+
 		/*
 		Temporary border code
 		*/
@@ -58,24 +60,9 @@ function Player(id) {
 		if (this.y + this.size/2 > H) {
 			this.y = H - this.size/2;
 		}
-		
-		dts = dt / 1000 * 16
 
+		var dts = dt / 1000 * 16;
 
-        //moving
-		/*dvx = 0;
-		dvy = 0;
-		if (keys["up"])       dvy -= 1;
-		if (keys["down"])     dvy += 1;
-		if (keys["left"])     dvx -= 1;
-		if (keys["right"])    dvx += 1;
-
-		//normalize dvx/y
-		if (dvx != 0 || dvy != 0) {
-            this.force(this.speed, Math.atan2(dvy, dvx));
-		}*/
-		
-		
 		var magnitude = this.controller.getInput("stickMagnitude")
 		var angle = this.controller.getInput("stickAngle")
 		this.force(this.speed * magnitude, angle);
@@ -125,10 +112,9 @@ function Player(id) {
 
 	}
 
-    this.erender = this.render;
-	this.render = function() {
-        this.erender();
-		tmp = ctx.fillStyle
+	render() {
+        super.render();
+		var tmp = ctx.fillStyle
 		if (this.toRemove) {
 			ctx.fillStyle = "grey";
 			ctx.beginPath()
@@ -138,25 +124,25 @@ function Player(id) {
 			return;
 		}
 
-		fs = setFillStyle(this.color);
-		ss = setStrokeStyle(this.color);
-		lw = setLineWidth(4);
-			
+		var fs = setFillStyle(this.color);
+		var ss = setStrokeStyle(this.color);
+		var lw = setLineWidth(4);
+
 		// outline
 		ctx.beginPath()
 		ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
 		ctx.closePath()
 		ctx.stroke()
 		ctx.lineWidth = tmp;
-		
+
 		// fill
 		ctx.beginPath()
-		degToPi = Math.PI/180
-		t = 0.1 + this.hp/this.hpMax * 0.9 // Math.sin(Date.now()/1000)/2 + 0.5
+		var degToPi = Math.PI/180
+		var t = 0.1 + this.hp/this.hpMax * 0.9 // Math.sin(Date.now()/1000)/2 + 0.5
 		ctx.arc(this.x, this.y, this.size / 2, t * -180 * degToPi + 90 * degToPi, t * 180 * degToPi + 90 * degToPi)
 		ctx.closePath()
 		ctx.fill()
-		
+
 		// heading arrow
 		var x1 = this.x + this.size * 1 * Math.cos(this.shootDir)
 		var x2 = x1 - this.size / 4 * Math.cos(this.shootDir - Math.PI / 4)
@@ -173,7 +159,7 @@ function Player(id) {
 		ctx.closePath()
 		ctx.stroke()
 		ctx.fillStyle = tmp
-		
+
 		setFillStyle(fs);
 		setStrokeStyle(ss);
 		setLineWidth(lw);
