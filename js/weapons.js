@@ -32,6 +32,8 @@ Weapons.Bow = {
 		this.specialProjectileEnabled = true
 	},
 	render: function(player) {
+		drawBow(player.x, player.y, player.shootDir, player.size * 0.4, this.currCharge/this.maxCharge);
+
 		if (this.currCharge > 0) {
 			ss = setStrokeStyle("white");
 			lw = setLineWidth(3);
@@ -46,6 +48,47 @@ Weapons.Bow = {
 		}
 	}
 
+}
+
+function drawBow(x, y, dir, size, t) {
+	var fs = setFillStyle("white");
+	var lw = setLineWidth(2);
+	var ss = setStrokeStyle("white");
+
+	var arcDeg = 120;
+	var degToRad = Math.PI / 180;
+	var a1 = dir - degToRad * arcDeg/2;
+	var a2 = dir + degToRad * arcDeg/2;
+	var t2 = Math.pow(t + 0.1, 1);
+	var k = 0.5;
+	if (t2 > k) t2 = k + (t2 - k)/t2;
+	var stringDrawDist = size * (0.5 - t2);
+	var arrowLength = size * 1.6;
+
+	// Bow arc
+	ctx.beginPath();
+	ctx.arc(x, y, size, a1, a2);
+	ctx.stroke();
+	ctx.closePath();
+
+	// Bow string
+	ctx.beginPath();
+	ctx.moveTo(x + size * Math.cos(a1), y + size * Math.sin(a1));
+	ctx.lineTo(x + stringDrawDist * Math.cos(dir), y + stringDrawDist * Math.sin(dir));
+	ctx.lineTo(x + size * Math.cos(a2), y + size * Math.sin(a2));
+	ctx.stroke();
+	ctx.closePath();
+
+	// Arrow
+	ctx.beginPath();
+	ctx.moveTo(x + stringDrawDist * Math.cos(dir), y + stringDrawDist * Math.sin(dir));
+	ctx.lineTo(x + (stringDrawDist + arrowLength) * Math.cos(dir), y + (stringDrawDist + arrowLength) * Math.sin(dir));
+	ctx.stroke();
+	ctx.closePath();
+
+	setFillStyle(fs);
+	setLineWidth(lw);
+	setStrokeStyle(ss);
 }
 
 Weapons.MachineGun = {
