@@ -92,21 +92,34 @@ class Projectile {
         // if (this.owner == 1) targets = game.enemies;
         // if (this.owner == 2 || game.mode == Mode.PVP) targets = game.players;
         //collision test
+		var dts = dt/1000;
+		var currentPos = V(this.x, this.y);
+		var nextPos = V(this.x + this.v * Math.cos(this.dir) * dts, this.y + this.v * Math.sin(this.dir) * dts)
         for (var i = 0; i < targets.length; i++) {
             if (targets[i].toRemove) {
                 continue;
             }
 			var rr = this.size / 2 + targets[i].size / 2;
-			var dts = dt/1000;
-			var currentPos = V(this.x, this.y);
-			var nextPos = V(this.x + this.v * Math.cos(this.dir) * dts, this.y + this.v * Math.sin(this.dir) * dts)
 			var targetPos = V(targets[i].x, targets[i].y)
 			var dd = distsqLineSegment(currentPos, nextPos, targetPos);
 			if (dd < rr * rr) //dist is less than sum of radii
 				out.push([targets[i], Math.sqrt(dd)]);
         }
+
+		for (var i = 0; i < game.walls.length; i++) {
+			var sides = game.walls[i].poly.sides;
+			for (var j = 0; j < sides.length; j++) {
+				var d = distLineSegments(currentPos, nextPos, sides[j][0], sides[j][1]);
+				// console.log(currentPos, nextPos, sides[j][0], sides[j][1], d)
+				if (d < this.size) {
+					out.push([game.walls[i], d]);
+				}
+			}
+		}
+
         return out;
     }
+
     impact(thing) {
         this.hp -= 1;
         if (this.hp <= 0) {

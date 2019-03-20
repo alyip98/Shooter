@@ -225,7 +225,7 @@ class SubMachineGun extends AmmoBasedWeapon {
 	constructor(owner) {
 		super(owner);
 		this.damage = 0.55;
-		this.maxAmmo = 100;
+		this.maxAmmo = 200;
 		this.ammo = 200;
 		this.rof = 2;
 		this.reloadTime = 5000;
@@ -437,13 +437,3 @@ Weapons.Tesla = {
     }
 }
 */
-Weapons.create = function() {
-	var bowCopy = {}
-	var mgCopy = {}
-	var sgCopy = {}
-
-	Object.assign(bowCopy, Weapons.Bow)
-	Object.assign(mgCopy, Weapons.MachineGun)
-	Object.assign(sgCopy, Weapons.Shotgun)
-	return [bowCopy, mgCopy, sgCopy]
-}

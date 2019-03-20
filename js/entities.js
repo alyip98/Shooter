@@ -88,6 +88,23 @@ class Entity {
 		other.y += cr * Math.sin(phi);
 	}
 
+	checkWallCollisions() {
+		var currentPos = V(this.x, this.y);
+		var dt = 10
+		var out = []
+		var nextPos = V(this.x + this.v * Math.cos(this.dir) * dt, this.y + this.v * Math.sin(this.dir) * dt)
+		for (var i = 0; i < game.walls.length; i++) {
+			var sides = game.walls[i].poly.sides;
+			for (var j = 0; j < sides.length; j++) {
+				var d = distLineSegments2(currentPos, nextPos, sides[j][0], sides[j][1]);
+				// console.log(currentPos, nextPos, sides[j][0], sides[j][1], d)
+				if (d < this.size) {
+					out.push([game.walls[i], d]);
+				}
+			}
+		}
+	}
+
 	setSpeed(vx, vy) {
 		this.dir = Math.atan2(vy, vx);
 		this.v = Math.sqrt(vx * vx + vy * vy);

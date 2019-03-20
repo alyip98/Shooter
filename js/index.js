@@ -37,7 +37,7 @@ function init() {
 
 	window.onkeydown = keyDownHandler
 	window.onkeyup = keyUpHandler
-	window.onmousemove = mouseMoveHandler
+	window.onmousemove = keyDownHandler
 	window.onmousedown = mouseDownHandler
 	window.onmouseup = mouseUpHandler
 
@@ -93,6 +93,7 @@ class Game {
 		this.projectiles = []
 		this.misc = []
 		this.entities = []
+		this.walls = [];
 		this.oldTime = Date.now()
 	}
 	init() {
@@ -100,6 +101,8 @@ class Game {
 		this.isPaused = false;
 		this.isOver = false;
 		this.mode = Mode.PVP;
+
+		this.registerWall(new Wall(100, 100, 100, 100));
 		//spawnEnemy()
 	}
 
@@ -231,7 +234,12 @@ class Game {
 		for (var i = 0; i < this.misc.length; i++) {
 			this.misc[i].render()
 		}
+
+		for (var i = 0; i < this.walls.length; i++) {
+			this.walls[i].render()
+		}
 	}
+
 
 	getPlayerById(id) {
 		for (var i = 0; i < this.players.length; i++) {
@@ -261,6 +269,10 @@ class Game {
 
 	registerEntity(e) {
 		this.entities.push(e);
+	}
+
+	registerWall(wall) {
+		this.walls.push(wall);
 	}
 
 	registerEnemy(e) {
@@ -293,9 +305,11 @@ function spawnEnemy() {
 	game.enemies.push(e)
 }
 
-Weapons = {}
-
-
+function debug() {
+	console.log("DEBUG")
+	var proj = new Projectile(1000, 150, 10000, Math.PI, game.players[0])
+	game.registerProjectile(proj);
+}
 
 function resizeWindow(event) {
 	W = window.innerWidth;

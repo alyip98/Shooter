@@ -53,16 +53,44 @@ function distsqTo(a, b) {
 }
 
 function distsqLineSegment(a, b, c) {
-	ab = b.sub(a)
-	ac = c.sub(a)
-	d = Math.max(0, Math.min(1, ac.dot(ab) / Math.pow(ab.len(), 2)))
+	var ab = b.sub(a)
+	var ac = c.sub(a)
+	var d = Math.max(0, Math.min(1, ac.dot(ab) / Math.pow(ab.len(), 2)))
 	return distsqTo(a.add(ab.mul(d)), c)
+}
+
+function distLineSegments(a, b, c, d) {
+    var x1 = a.x;
+    var x2 = b.x;
+    var x3 = c.x;
+    var x4 = d.x;
+    var y1 = a.y;
+    var y2 = b.y;
+    var y3 = c.y;
+    var y4 = d.y;
+    var ua = ((x4 - x3) * (y1 - y3) - (y4- y3) * (x1 - x3))/
+        ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
+    var ub = ((x2 - x1) * (y1 - y3) - (y2- y1) * (x1 - x3))/
+        ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
+    if (0 <= ua && ua <= 1 && 0 <= ub && ub <= 1) {
+        return 0;
+    }
+
+    return Math.sqrt(Math.min(distsqLineSegment(a, b, c),
+        distsqLineSegment(a, b, d),
+        distsqLineSegment(c, d, a),
+        distsqLineSegment(c, d, b)
+    ));
 }
 
 class Polygon {
     constructor(...args) {
-        this.numSides = args.length;
+        this.numVertices = args.length;
         this.vertices = [...args];
+        this.sides = [];
+        for (var i = 0; i < this.numVertices; i++) {
+            this.sides.push([this.vertices[i], this.vertices[(i + 1)%this.numVertices]]);
+        }
     }
 }
 
@@ -78,10 +106,10 @@ function pointInRectangle(point, rect) {
     var AD = rect.vertices[3].sub(rect.vertices[0]);
     var AP = point.sub(rect.vertices[0]);
     var APxAB = AP.dot(AB);
-    var APxAB = AP.dot(AD);
+    var APxAD = AP.dot(AD);
     return (0 <= APxAB && APxAB <= AB.dot(AB)) && (0 <= APxAD && APxAD <= AD.dot(AD))
 }
 
 function intersectCircle(circle, line) {
-    return distsqLineSegment
+    return distsqLineSegment(line.start, line.end, circle.center) < circle.radius * circle.radius;
 }
