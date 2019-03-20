@@ -8,7 +8,7 @@ class Projectile {
     constructor(x, y, v, dir, owner) {
         //console.log(x,y,v,dir,owner)
         this.lifetime = 0;
-        this.size = 8;
+        this.size = 4;
         this.x = x || W / 2;
         this.y = y || H / 2;
         this.v = v || 40;

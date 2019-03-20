@@ -32,9 +32,15 @@ Weapons.Bow = {
 		this.specialProjectileEnabled = true
 	},
 	render: function(player) {
-		drawBow(player.x, player.y, player.shootDir, player.size * 0.4, this.currCharge/this.maxCharge);
+		var jitterX = 0;
+		var jitterY = 0;
+		if (this.currCharge == this.maxCharge) {
+			jitterX = (Math.random() - 0.5) * 3
+			jitterY = (Math.random() - 0.5) * 3
+		}
+		drawBow(player.x + jitterX, player.y + jitterY, player.shootDir, player.size * 0.4, this.currCharge/this.maxCharge);
 
-		if (this.currCharge > 0) {
+		/*if (this.currCharge > 0) {
 			ss = setStrokeStyle("white");
 			lw = setLineWidth(3);
 
@@ -45,9 +51,8 @@ Weapons.Bow = {
 
 			setStrokeStyle(ss);
 			setLineWidth(lw);
-		}
+		}*/
 	}
-
 }
 
 function drawBow(x, y, dir, size, t) {
@@ -55,7 +60,7 @@ function drawBow(x, y, dir, size, t) {
 	var lw = setLineWidth(2);
 	var ss = setStrokeStyle("white");
 
-	var arcDeg = 120;
+	var arcDeg = 145;
 	var degToRad = Math.PI / 180;
 	var a1 = dir - degToRad * arcDeg/2;
 	var a2 = dir + degToRad * arcDeg/2;
