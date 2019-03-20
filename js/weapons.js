@@ -5,38 +5,13 @@ Weapons.Bow = {
 	element: "none",
 	specialProjectileEnabled: false,
 	fire: function(player) {
-		var proj = new Projectile(player.x, player.y, 100 * this.currCharge / 1000, player.shootDir + (-0.5 + Math.random()) * Math.PI / 100, player);
+		var proj = new Arrow(player.x, player.y, 700 * this.currCharge/this.maxCharge, player.shootDir + (-0.5 + Math.random()) * Math.PI / 100, player);
 		proj.damage = (this.currCharge / 750 + 1) * this.damage;
-		proj.v = 700 * this.currCharge/this.maxCharge;
 		proj.fxn = 0.9;
 		proj.knockbackCoeff = 0.5;
 		if (this.currCharge >= this.maxCharge) {
 			proj.penetrate = true;
 			proj.hp = 3;
-			if (this.specialProjectileEnabled) {
-				proj.damage = 0.2;
-				proj.knockbackCoeff = 1;
-				proj.hp = 10000;
-				proj.v = 25;
-				proj.size = 150;
-				proj.fxn = 1;
-				proj.decayTime = 100000;
-				this.specialProjectileEnabled = false;
-			} else {
-				var pi = proj.impact;
-				proj.impact = function(thing) {
-					pi.call(this, thing);
-					this.v *= 0.5;
-					/*this.hp -= 1;
-					if (this.hp <= 0) {
-						this.toRemove = true;
-						this.penetrate = false;
-					}
-					this.knockback = this.v * this.knockbackCoeff;
-					thing.knockback(this.knockback, this.dir);
-					thing.damage(this.damage);*/
-				}
-			}
 		}
 		game.projectiles.push(proj)
 	},
@@ -46,13 +21,7 @@ Weapons.Bow = {
 	chargeMulti: 1,
 	charge: function(player, dt) {
 		//player.addBuff(new Slow(0.8, 1));
-		if (this.specialProjectileEnabled)
-			this.currCharge += dt / 2 * this.chargeMulti
-		else
-			this.currCharge += dt * this.chargeMulti
-		if (this.currCharge > this.maxCharge) {
-			this.release(player)
-		}
+		this.currCharge = Math.min(this.currCharge + dt * this.chargeMulti, this.maxCharge);
 	},
 	release: function(player) {
 		if (this.currCharge > this.minCharge)
@@ -68,7 +37,7 @@ Weapons.Bow = {
 			lw = setLineWidth(3);
 
 			ctx.beginPath()
-			ctx.arc(player.x, player.y, player.size / 2 * (1 - (this.currCharge / this.maxCharge)), 0, Math.PI * 2)
+			ctx.arc(player.x, player.y, player.size / 2 * (1 - (this.currCharge / this.maxCharge) * 0.95), 0, Math.PI * 2)
 			ctx.closePath()
 			ctx.stroke()
 
@@ -93,19 +62,10 @@ Weapons.MachineGun = {
 	canFire: true,
 	released: true,
 	fire: function(player) {
-		var proj = new Projectile(player.x, player.y, 30, player.shootDir + (-0.5 + Math.random()) * Math.PI / 100, player)
+		var proj = new Projectile(player.x, player.y, 200, player.shootDir + (-0.5 + Math.random()) * Math.PI / 100, player)
 		proj.damage = this.damage
-		proj.penetrate = false
-		proj.hp = 1
-		proj.v = 200
 		proj.knockbackCoeff = 0.01
 		proj.fxn = 0.99
-		proj.render = function() {
-			tmp = ctx.fillStyle
-			ctx.fillStyle = "yellow"
-			ctx.fillRect(this.x, this.y, 4, 4)
-			ctx.fillStyle = tmp
-		}
 		game.projectiles.push(proj)
 	},
 	charge: function(player, dt) {
@@ -148,7 +108,7 @@ Weapons.MachineGun = {
 
 Weapons.Shotgun = {
 	name: "Shotgun",
-	damage: 1,
+	damage: 2,
 	type: "gun",
 	element: "none",
 	rof: 1,
@@ -164,19 +124,10 @@ Weapons.Shotgun = {
 	released: true,
 	fire: function(player) {
 		for (var i = 0; i < this.shots; i++) {
-			var proj = new Projectile(player.x, player.y, 100 * this.currCharge / 1000, player.shootDir + (-0.5 + Math.random()) * Math.PI * (1 - this.accuracy), player)
-			proj.damage = 2
-			proj.penetrate = false
-			proj.hp = 1
-			proj.v = 1000 * (0.5 + Math.random() / 2)
+			var proj = new Projectile(player.x, player.y, 1000 * (0.5 + Math.random() / 2), player.shootDir + (-0.5 + Math.random()) * Math.PI * (1 - this.accuracy), player)
+			proj.damage = this.damage;
 			proj.knockbackCoeff = 0.3
 			proj.fxn = 0.8
-			proj.render = function() {
-				tmp = ctx.fillStyle
-				ctx.fillStyle = "yellow"
-				ctx.fillRect(this.x, this.y, 4, 4)
-				ctx.fillStyle = tmp
-			}
 			game.projectiles.push(proj)
 		}
 	},

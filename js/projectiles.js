@@ -23,7 +23,6 @@ class Projectile {
         this.hitList = [];
     }
     tick(dt) {
-        var dts = dt / 1000 * 16 || 1;
         if ((this.x < 0 || this.x > W || this.y < 0 || this.y > H) && this.lifetime > 500) {
             this.toRemove = true;
             return;
@@ -157,7 +156,18 @@ class Projectile {
         thing.damage(this.damage);
     }
     render() {
-        ctx.strokeStyle = "white";
+		var fs = setFillStyle("yellow");
+		ctx.fillRect(this.x, this.y, this.size, this.size);
+		ctx.fillStyle = fs;
+    }
+}
+
+class Arrow extends Projectile{
+	constructor(x, y, v, dir, owner){
+		super(x, y, v, dir, owner);
+	}
+    render(){
+		ctx.strokeStyle = "white";
         ctx.beginPath();
         ctx.moveTo(this.x, this.y);
         var projlength = Math.min(this.v, 20);
@@ -192,5 +202,9 @@ class Projectile {
         ctx.lineTo(nx + x3 / 2, ny + y3 / 2);
         ctx.closePath();
         ctx.stroke();
-    }
+	}
+	impact(thing) {
+		super.impact(thing);
+		this.v *= 0.5;
+	}
 }
