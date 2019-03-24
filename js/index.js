@@ -95,14 +95,15 @@ class Game {
 		this.entities = []
 		this.walls = [];
 		this.oldTime = Date.now()
+		this.doSpawn = false;
 	}
 	init() {
 		this.timeToNextSpawn = 0;
 		this.isPaused = false;
 		this.isOver = false;
-		this.mode = Mode.PVP;
+		this.mode = Mode.PVE;
 
-		// this.registerWall(new Wall(W/2, H/2, 400, 100));
+		this.registerWall(new SquareWall(W/2, H/2, 400, 100));
 		//spawnEnemy()
 	}
 
@@ -168,7 +169,7 @@ class Game {
 			}
 		}
 
-		if (this.counter % 100 == 0 && this.mode == Mode.PVE) {
+		if (this.counter % 100 == 0 && this.mode == Mode.PVE && this.doSpawn) {
 			//spawn enemy
 			spawnEnemy()
 		}

@@ -2,21 +2,21 @@
 class Entity {
 	constructor() {
 		this.buffs = [];
-	    this.speed = 5;
-	    this.size = 32
+		this.speed = 5;
+		this.size = 32
 		this.v = 0
 		this.dir = 0
 		this.shootDir = 0
-	    this.hp = 100;
-		this.mp=0;
-	    this.hpMax = 100;
+		this.hp = 100;
+		this.mp = 0;
+		this.hpMax = 100;
 		this.hpRegenRate = 0.1;
 	    /*this.HPBar = new HealthBar(this);
 	    this.HPBar.width = this.size;
 	    this.HPBar.height = this.size/16;
 	    this.HPBar.offsetY = this.size * -0.7;*/
-
-	    this.dmgText = new DamageText(this);
+		this.path = new Path(V(0, 0), V(0, 0), this.size);
+		this.dmgText = new DamageText(this);
 	}
 
 	addBuff(buff) {
@@ -26,24 +26,24 @@ class Entity {
 	}
 
 	removeBuff(buff) {
-		for(var i=0;i<this.buffs.length;i++){
-			if(this.buffs[i] === buff){
+		for (var i = 0; i < this.buffs.length; i++) {
+			if (this.buffs[i] === buff) {
 				buff.removeEffects(this);
 				this.buffs.splice(i, 1);
 			}
 		}
 	}
 
-    tick(dt) {
-        var dts = dt / 1000 * 16
+	tick(dt) {
+		var dts = dt / 1000 * 16
 
-		this.hp = Math.min(this.hpMax, this.hp + this.hpRegenRate * dt/1000);
+		this.hp = Math.min(this.hpMax, this.hp + this.hpRegenRate * dt / 1000);
 
-    	for(var i=0;i<this.buffs.length;i++){
-    		this.buffs[i].tick(dt);
-    	}
+		for (var i = 0; i < this.buffs.length; i++) {
+			this.buffs[i].tick(dt);
+		}
 
-        this.v *= Math.pow(0.9, 1 + dts)
+		this.v *= Math.pow(0.9, 1 + dts)
 		if (Math.abs(this.v) < 0.1)
 			this.v = 0
 
@@ -51,18 +51,21 @@ class Entity {
 		var vx = this.v * Math.cos(this.dir)
 		var vy = this.v * Math.sin(this.dir)
 
-		this.x += vx * dts
-		this.y += vy * dts
+		this.path.start = V(this.x, this.y);
+		this.path.end = V(this.x + vx, this.y + vy);
 
-		this.checkWallCollisions()
+		if (!this.checkWallCollisions()) {
+			this.x += vx * dts
+			this.y += vy * dts
+		}
 
-        this.dmgText.tick(dt);
-    }
+		this.dmgText.tick(dt);
+	}
 
-    render() {
-        // this.HPBar.render();
-        this.dmgText.render();
-    }
+	render() {
+		// this.HPBar.render();
+		this.dmgText.render();
+	}
 
 	physicsCollision(other) {
 		var v1 = this.v;
@@ -91,35 +94,49 @@ class Entity {
 	}
 
 	checkWallCollisions() {
-		var currentPos = V(this.x, this.y);
-		var dt = 1/1000
+		/*var currentPos = V(this.x, this.y);
+		var dt = 1 / 1000
 		var out = []
-		var nextPos = V(this.x + this.v * Math.cos(this.dir) * dt, this.y + this.v * Math.sin(this.dir) * dt)
+		var nextPos = V(this.x + this.v * Math.cos(this.dir) * dt, this.y + this.v * Math.sin(this.dir) * dt)*/
+		var hits = [];
 		for (var i = 0; i < game.walls.length; i++) {
-			var sides = game.walls[i].poly.sides;
-			for (var j = 0; j < sides.length; j++) {
-				var d = distLineSegments(currentPos, nextPos, sides[j][0], sides[j][1]);
-				// console.log(currentPos, nextPos, sides[j][0], sides[j][1], d)
-				if (d < this.size) {
-					out.push([game.walls[i], d, sides[j]]);
-					break;
-				}
+			var wall = game.walls[i];
+			var hitData;
+			if ((hitData = wall.hitTestPath(this.path))) {
+				hits = hits.concat(hitData.hits)
 			}
 		}
 
-		out.sort((a, b) => a[1]-b[1])
 
-
-		if (out.length > 0) {
-			var overlap = this.size - out[0][1] + 100
-			// shift to remove overlap
-			var point = shortestDistPointOnLineSegment(currentPos.add(nextPos).mul(0.5), out[0][2][0], out[0][2][1])
-			var angle = point.sub(currentPos).toPolar().angle + Math.PI;
-			console.log(angle, overlap)
-			this.x += Math.cos(angle) * overlap
-			this.y += Math.sin(angle) * overlap
-			this.v *= 0.9
+		var sortedHits = hits.map(hit => [hit.point2, hit.point2.distTo(this.path.start)])
+		if (sortedHits.length > 0) {
+			console.log(sortedHits);
+			this.x = sortedHits[0][0].x;
+			this.y = sortedHits[0][0].y;
+			return true;
 		}
+		// sort by distance?
+		// hits.sort();
+		return false;
+
+	}
+
+	hitTestPath(line, nextPos) {
+		var d = this.currentPos;
+		var c = nextPos;
+		var a = line.start;
+		var b = line.end;
+		var cd = d.sub(c);
+		var ab = b.sub(a);
+
+		var theta = cd.angle(ab);
+		if (theta == 0) return false;
+		var intersect = ab.findIntersect(cd);
+		if (!intersect) return false;
+		var e = intersect[2];
+		var h = this.size / Math.sin(theta); // hypotenuse
+		var p = e.add(cd.getUnitVector().mul(h));
+		return p;
 	}
 
 	setSpeed(vx, vy) {
@@ -127,7 +144,7 @@ class Entity {
 		this.v = Math.sqrt(vx * vx + vy * vy);
 	}
 
-    damage(damage) {
+	damage(damage) {
 		this.hp -= damage
 		//game.misc.push(new PopupText(this.x, this.y, damage.toFixed(2)))
 		if (this.hp <= 0) {
@@ -153,8 +170,8 @@ class Entity {
 		this.v = Math.sqrt(vx * vx + vy * vy);
 	}
 
-    force(force, direction){
-        var vx = this.v * Math.cos(this.dir)
+	force(force, direction) {
+		var vx = this.v * Math.cos(this.dir)
 		var vy = this.v * Math.sin(this.dir)
 
 		var ax = force * Math.cos(direction)
@@ -164,30 +181,30 @@ class Entity {
 
 		this.dir = Math.atan2(vy, vx)
 		this.v = Math.sqrt(vx * vx + vy * vy)
-    }
+	}
 
-    getSpeedAfterEffects(){
-        var flatBonuses = [];
-        var multBonuses = [];
+	getSpeedAfterEffects() {
+		var flatBonuses = [];
+		var multBonuses = [];
 
-        for(var i=0;i<this.buffs.length;i++){
-            if(this.buffs[i].getTag("speed")){
-                if(this.buffs[i]){
+		for (var i = 0; i < this.buffs.length; i++) {
+			if (this.buffs[i].getTag("speed")) {
+				if (this.buffs[i]) {
 
-                }
-            }
-        }
-    }
+				}
+			}
+		}
+	}
 
-    getHealth(){
-        return this.hp;
-    }
+	getHealth() {
+		return this.hp;
+	}
 
-    getMaxHealth() {
-        return this.hpMax;
-    }
+	getMaxHealth() {
+		return this.hpMax;
+	}
 
-    getCoords() {
-        return V(this.x, this.y);
-    }
+	getCoords() {
+		return V(this.x, this.y);
+	}
 }

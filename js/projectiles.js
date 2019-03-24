@@ -107,9 +107,9 @@ class Projectile {
         }
 
 		for (var i = 0; i < game.walls.length; i++) {
-			var sides = game.walls[i].poly.sides;
+			var sides = game.walls[i].sides;
 			for (var j = 0; j < sides.length; j++) {
-				var d = distLineSegments(currentPos, nextPos, sides[j][0], sides[j][1]);
+				var d = distLineSegments(currentPos, nextPos, sides[j].start, sides[j].end);
 				// console.log(currentPos, nextPos, sides[j][0], sides[j][1], d)
 				if (d < this.size) {
 					out.push([game.walls[i], d]);

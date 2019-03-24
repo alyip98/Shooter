@@ -21,8 +21,9 @@ class Enemy extends Entity {
 			this.target = Math.floor(Math.random() * game.players.length);
 		}
 		var player = game.players[this.target];
-		targetDir = Math.atan2(-this.y + player.y, -this.x + player.x)
-		ddir = this.facingDir - targetDir
+        if (!player) return;
+		var targetDir = Math.atan2(-this.y + player.y, -this.x + player.x)
+		var ddir = this.facingDir - targetDir
 		if (ddir < -Math.PI) ddir += 2 * Math.PI
 		if (ddir > Math.PI) ddir -= 2 * Math.PI
 		if (Math.abs(ddir) < this.turnrate) this.facingDir = targetDir
