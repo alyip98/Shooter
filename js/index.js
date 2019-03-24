@@ -30,7 +30,7 @@ function init() {
 	c.height = H
 	ctx = c.getContext('2d')
 	ctx.fillRect(0, 0, W, H)
-		//document.body.appendChild(c)
+	//document.body.appendChild(c)
 
 	mx = W / 2
 	my = H / 2
@@ -101,10 +101,10 @@ class Game {
 		this.timeToNextSpawn = 0;
 		this.isPaused = false;
 		this.isOver = false;
-		this.mode = Mode.PVE;
+		this.mode = Mode.PVP;
 
-		var size = 100
-		this.registerWall(new NSidedWall(W/2, H/2, 200, 6));
+		this.misc.push(new FPSTracker())
+		this.registerWall(new NSidedWall(W / 2, H / 2, 200, 30));
 		//spawnEnemy()
 	}
 
@@ -115,6 +115,16 @@ class Game {
 			return;
 		}
 		this.counter += 1
+
+		//tick projectiles
+		for (var i = 0; i < this.projectiles.length; i++) {
+			if (this.projectiles[i].toRemove) {
+				this.projectiles.splice(i, 1)
+				i -= 1
+			} else {
+				this.projectiles[i].tick(dt)
+			}
+		}
 
 		//tick player
 		var alive = 0;
@@ -133,15 +143,6 @@ class Game {
 		if (this.mode == Mode.PVP && alive == 1) {
 			this.winner = livingPlayers[0].name;
 			gameOver();
-		}
-
-		//tick projectiles
-		for (var i = 0; i < this.projectiles.length; i++) {
-			this.projectiles[i].tick(dt)
-			if (this.projectiles[i].toRemove) {
-				this.projectiles.splice(i, 1)
-				i -= 1
-			}
 		}
 
 		//tick enemy
@@ -181,9 +182,9 @@ class Game {
 
 		this.render()
 		this.oldTime = Date.now()
-			//setTimeout(this.tick,100)
+		//setTimeout(this.tick,100)
 		var tmp = this;
-		window.requestAnimationFrame(function(){tmp.tick()})
+		window.requestAnimationFrame(function() { tmp.tick() })
 	}
 
 	render() {
@@ -194,8 +195,9 @@ class Game {
 
 		if (this.isOver) {
 			ctx.fillStyle = "white";
-			ctx.fillText("Game Over", W/2, H/2);
-			ctx.fillText("Winner: " + this.winner, W/2, H/2 + 15);
+			ctx.font = "30px sans-serif"
+			centeredText("Game Over", W / 2, H / 2);
+			centeredText("Winner: " + this.winner, W / 2, H / 2 + 45);
 			return;
 		}
 
@@ -203,17 +205,17 @@ class Game {
 		var gridSize = 60;
 		var ss = setStrokeStyle("#333");
 		var lw = setLineWidth(1);
-		for (var i = 0; i < W/gridSize; i++) {
+		for (var i = 0; i < W / gridSize; i++) {
 			ctx.beginPath()
 			ctx.moveTo(i * gridSize, 0);
 			ctx.lineTo(i * gridSize, H);
 			ctx.closePath();
 			ctx.stroke();
 		}
-		for (var j = 0; j < H/gridSize; j++) {
+		for (var j = 0; j < H / gridSize; j++) {
 			ctx.beginPath()
-			ctx.moveTo(0, j * gridSize,);
-			ctx.lineTo(W, j * gridSize,);
+			ctx.moveTo(0, j * gridSize);
+			ctx.lineTo(W, j * gridSize);
 			ctx.closePath();
 			ctx.stroke();
 		}

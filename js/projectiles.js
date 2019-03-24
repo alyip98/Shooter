@@ -12,7 +12,7 @@ class Projectile {
         this.x = x || W / 2;
         this.y = y || H / 2;
         this.v = v || 40;
-        this.dir = dir || Math.random() * 2 * Math.PI;
+        this.dir = dir;
         this.penetrate = false;
         this.hp = 1;
         this.owner = owner;
@@ -21,17 +21,23 @@ class Projectile {
         this.decayTime = 3000;
         this.knockbackCoeff = 1;
         this.hitList = [];
+		this.lastX = x
+		this.lastY = y
     }
     tick(dt) {
         if ((this.x < 0 || this.x > W || this.y < 0 || this.y > H) && this.lifetime > 500) {
             this.toRemove = true;
             return;
         }
+
         this.lifetime += dt;
         if (this.lifetime > this.decayTime) {
             this.toRemove = true;
             return;
         }
+
+		this.lastX = this.x
+		this.lastY = this.y
 
         var collisions = this.checkCollisions(dt);
 		collisions.sort((a, b) => a[1] - b[1]);
@@ -142,6 +148,7 @@ class Arrow extends Projectile{
 		super(x, y, v, dir, owner);
 	}
     render(){
+		setLineWidth(2)
 		ctx.strokeStyle = "white";
         ctx.beginPath();
         ctx.moveTo(this.x, this.y);
@@ -181,5 +188,21 @@ class Arrow extends Projectile{
 	impact(thing) {
 		super.impact(thing);
 		this.v *= 0.5;
+	}
+}
+
+class PistolProjectile extends Projectile {
+	constructor(x, y, v, dir, owner){
+		super(x, y, v, dir, owner);
+	}
+
+	render() {
+		setStrokeStyle("yellow")
+		setLineWidth(4)
+		ctx.beginPath()
+		ctx.moveTo(this.lastX, this.lastY)
+		ctx.lineTo(this.x, this.y)
+		ctx.stroke()
+		ctx.closePath()
 	}
 }

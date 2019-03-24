@@ -3,6 +3,7 @@ var line;
 var ctrl = 0;
 var linePos = [];
 var lines = [];
+var fpsTracker
 
 var walls = [];
 
@@ -38,6 +39,7 @@ function init() {
     window.onmouseup = e => controlling = false;
     window.onmousemove = mouseMoveHandler
 
+    fpsTracker = new FPSTracker()
     render();
 }
 
@@ -47,6 +49,7 @@ function render() {
 
     setStrokeStyle("white");
     thing.render();
+    fpsTracker.render()
 
     for (var i in walls) {
         var hitResult = walls[i].hitTestPath(thing);

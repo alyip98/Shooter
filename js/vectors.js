@@ -112,13 +112,15 @@ class Polygon {
             ctx.stroke();
             ctx.closePath();
 
-            var mid = side.start.add(side.end).mul(0.5)
-            var normal = mid.add(side.end.sub(side.start).getNormalVector().getUnitVector().mul(50))
-            ctx.beginPath()
-            ctx.moveTo(mid.x, mid.y);
-            ctx.lineTo(normal.x, normal.y);
-            ctx.stroke();
-            ctx.closePath();
+            if (Settings.debug) {
+                var mid = side.start.add(side.end).mul(0.5)
+                var normal = mid.add(side.end.sub(side.start).getNormalVector().getUnitVector().mul(50))
+                ctx.beginPath()
+                ctx.moveTo(mid.x, mid.y);
+                ctx.lineTo(normal.x, normal.y);
+                ctx.stroke();
+                ctx.closePath();
+            }
         }
     }
 
@@ -344,7 +346,7 @@ class Path extends Line {
                     message: ua.toFixed(2) + " - " + ub.toFixed(2),
                     point1: p1,
                     point2: p2
-                    }
+                }
 
         }
 

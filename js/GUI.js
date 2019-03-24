@@ -7,7 +7,10 @@ class GUI {
         this.offsetX = 0;
         this.offsetY = 0;
         this.colour = "white";
+        this.hidden = false;
     }
+
+    tick() {}
 }
 
 class Bar extends GUI {
@@ -73,6 +76,12 @@ class PopupText {
 class Text extends GUI {
     constructor() {
         super();
+        this.text = "";
+    }
+
+    render() {
+        setFillStyle(this.colour)
+        ctx.fillText(this.text, this.x, this.y)
     }
 }
 
@@ -80,14 +89,15 @@ class DamageText extends Text {
     constructor(obj) {
         super();
         this.boundObject = obj;
-        this.hidden = true;
         this.position = "follow";
         this.timeout = 1000;
         this.prevHP = -1;
         this.startHP = 0;
         this.hitHP = 0;
-        this.text = "";
+        this.size = 0;
+        this.baseSize = 24;
     }
+
     tick(dt) {
         var dhp = this.boundObject.getHealth() - this.prevHP;
         //console.log(dhp);
@@ -99,7 +109,8 @@ class DamageText extends Text {
             else {
                 this.hitHP += dhp;
             }
-            this.timeout = 1000;
+            this.timeout = 1500;
+            this.size = this.baseSize * (1 - this.hitHP/this.boundObject.getMaxHealth())
         }
         else {
             this.timeout -= dt;
@@ -107,6 +118,7 @@ class DamageText extends Text {
                 this.hidden = true;
             }
         }
+        this.offsetY = this.timeout/1500 * 50 - this.boundObject.size
         this.prevHP = this.boundObject.getHealth();
     };
     render() {
@@ -114,7 +126,12 @@ class DamageText extends Text {
         if (!this.hidden) {
             ctx.fillStyle = "white";
             //console.log(this);
-            ctx.fillText(this.getText(), this.boundObject.x + this.offsetX, this.boundObject.y + this.offsetY);
+            var tmp = ctx.font;
+            ctx.font = this.size.toFixed() + "px sans-serif"
+            console.log(ctx.font)
+            var offX = ctx.measureText(this.getText()).width
+            ctx.fillText(this.getText(), this.boundObject.x + this.offsetX - offX/2, this.boundObject.y + this.offsetY);
+            ctx.font = tmp;
         }
     };
     getText() {
@@ -144,5 +161,29 @@ class ChannelBar extends Bar{
 
     getPercentage(){
         return this.boundObject.channelDuration/obj.castTime;
+    }
+}
+
+class FPSTracker extends Text {
+    constructor() {
+        super()
+        this.x = 20
+        this.y = 20
+        this.pastFrameTimes = []
+        this.sumFrameTime = 0
+        this.lastTime = Date.now()
+        this.maxFrameHistory = 200
+    }
+
+    render() {
+        var dt = Date.now() - this.lastTime
+        this.pastFrameTimes.push(dt)
+        this.sumFrameTime += dt
+        if(this.pastFrameTimes.length > this.maxFrameHistory) {
+            this.sumFrameTime -= this.pastFrameTimes.shift()
+        }
+        this.lastTime += dt
+        this.text = (1000/(this.sumFrameTime/this.pastFrameTimes.length)).toFixed(1)
+        super.render();
     }
 }

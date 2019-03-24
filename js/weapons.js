@@ -110,7 +110,7 @@ class AmmoBasedWeapon extends Weapon {
 class Bow extends ChargeBasedWeapon {
 	constructor(owner) {
 		super(owner);
-		this.damage = 30;
+		this.damage = 20;
 		this.speedPenalty = 0.9;
 		this.projectileSpeed = 11000;
 		this.minCharge = 0.3;
@@ -119,7 +119,7 @@ class Bow extends ChargeBasedWeapon {
 	fire() {
 		var player = this.owner;
 		var proj = new Arrow(player.x, player.y, this.projectileSpeed * this.currCharge/this.maxCharge, player.shootDir + (-0.5 + Math.random()) * Math.PI / 100, player);
-		proj.damage = (0.9 * this.currCharge / this.maxCharge + 0.1) * this.damage;
+		proj.damage = (0.95 * this.currCharge / this.maxCharge + 0.05) * this.damage;
 		proj.fxn = 0.9;
 		proj.knockbackCoeff = 0.5;
 		if (this.currCharge >= this.maxCharge) {
@@ -187,21 +187,21 @@ class Shotgun extends AmmoBasedWeapon {
 	constructor(owner) {
 		super(owner);
 		this.damage = 2;
-		this.shots = 10;
-		this.accuracy = 0.7;
+		this.shots = 20;
+		this.accuracy = 0.5;
 		this.speedPenalty = 0.7;
 		this.maxAmmo = 3;
 		this.ammo = 3;
-		this.reloadTime = 1500;
+		this.reloadTime = 2500;
 		this.isCocked = true;
 	}
 
 	fire() {
 		var player = this.owner;
 		for (var i = 0; i < this.shots; i++) {
-			var proj = new Projectile(player.x, player.y, 15000 * (0.5 + Math.random() / 2), player.shootDir + (-0.5 + Math.random()) * Math.PI * (1 - this.accuracy), player)
+			var proj = new Projectile(player.x, player.y, 7000 * (0.5 + Math.random() / 2), player.shootDir + (-0.5 + Math.random()) * Math.PI * (1 - this.accuracy), player)
 			proj.damage = this.damage;
-			proj.knockbackCoeff = 0.3
+			proj.knockbackCoeff = 0.17
 			proj.fxn = 0.8
 			game.registerProjectile(proj)
 		}
@@ -253,6 +253,64 @@ class SubMachineGun extends AmmoBasedWeapon {
 	}
 }
 
+class Pistol extends AmmoBasedWeapon {
+	constructor(owner) {
+		super(owner);
+		this.damage = 9;
+		this.accuracy = 1;
+		this.speedPenalty = 0.85;
+		this.maxAmmo = 6;
+		this.ammo = 6;
+		this.reloadTime = 1500;
+		this.accuracyPenalty = 0
+		this.accuracyRecoveryRate = 0.04
+		this.flatAccuracyRecoveryRate = 0.001
+		this.minAccuracy = 0.3
+		this.isCocked = true;
+	}
+
+	fire() {
+		var player = this.owner;
+		var effectiveAccuracy = Math.max(this.accuracy * (1 - this.accuracyPenalty), this.minAccuracy)
+		console.log("ea", effectiveAccuracy)
+		this.accuracyPenalty += Math.min(0.03 + 2.5 * this.accuracyPenalty, 100)
+		var dir = player.shootDir + (-0.5 + Math.random()) * Math.PI * (1 - effectiveAccuracy)
+		var proj = new PistolProjectile(player.x, player.y, 7000 * (0.9 + Math.random() * 0.1), dir, player)
+		proj.damage = this.damage;
+		proj.knockbackCoeff = 0.35
+		proj.fxn = 0.9
+		game.registerProjectile(proj)
+		this.isCocked = false;
+		super.fire();
+	}
+
+	charge(dt) {
+		if (!this.isCocked) {
+			return;
+		}
+		super.charge(dt);
+	}
+
+	release(dt) {
+		this.isCocked = true;
+	}
+
+	tick(dt) {
+		super.tick(dt)
+		this.accuracyPenalty = Math.max(0, this.accuracyPenalty * (1 - this.accuracyRecoveryRate) - this.flatAccuracyRecoveryRate)
+	}
+
+	render() {
+		super.render()
+		var player = this.owner
+		setFillStyle("white")
+		ctx.beginPath()
+		ctx.arc(player.x, player.y, player.size * Math.min(this.accuracyPenalty, 3) / 6, 0, Math.PI * 2)
+		ctx.fill()
+		ctx.closePath()
+	}
+
+}
 /*
 Weapons.SplitBow = {
 	name: "Split Bow",

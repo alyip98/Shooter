@@ -8,7 +8,7 @@ class Player extends Entity {
 		this.attackCD = 1000
 		this.attackCDcurr = 0
 		this.hpRegenRate = 1;
-		this.weapons = [new Bow(this), new SubMachineGun(this), new Shotgun(this)];
+		this.weapons = [new Bow(this), new Pistol(this), new Shotgun(this)];
 		this.currentWeapon = 0
 		this.weapon = this.weapons[this.currentWeapon];
 		this.controller = new Controller();
@@ -120,6 +120,7 @@ class Player extends Entity {
 		}
 		var fs = setFillStyle("white");
 
+		ctx.font = "24px sans-serif"
 		var textWidth = ctx.measureText(this.name).width;
 		ctx.fillText(this.name, this.x - textWidth/2, this.y - this.size/2 - 10);
 

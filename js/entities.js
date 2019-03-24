@@ -17,6 +17,8 @@ class Entity {
 	    this.HPBar.offsetY = this.size * -0.7;*/
 		this.path = new Path(V(0, 0), V(0, 0), this.size);
 		this.dmgText = new DamageText(this);
+		this.lastX = 0
+		this.lastY = 0
 	}
 
 	addBuff(buff) {
@@ -36,6 +38,8 @@ class Entity {
 
 	tick(dt) {
 		var dts = dt / 1000 * 16
+		this.lastX = this.x
+		this.lastY = this.y
 
 		this.hp = Math.min(this.hpMax, this.hp + this.hpRegenRate * dt / 1000);
 
@@ -55,7 +59,7 @@ class Entity {
 		this.path.end = V(this.x + vx * dts, this.y + vy * dts);
 
 		var pathLength = this.path.asVector().getLength();
-		console.log(pathLength)
+		// console.log(pathLength)
 		var chg
 		if ((chg = this.checkWallCollisions())) {
 			var dv = chg.getLength()

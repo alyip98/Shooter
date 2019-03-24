@@ -45,3 +45,8 @@ function line(x1, y1, x2, y2) {
 function dot(x, y, size = 4) {
 	ctx.fillRect(x - size / 2, y - size / 2, size, size)
 }
+
+function centeredText(text, x, y) {
+	var width = ctx.measureText(text).width
+	ctx.fillText(text, x - width/2, y)
+}
