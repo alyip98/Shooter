@@ -34,9 +34,21 @@ class Wall extends Polygon {
 class SquareWall extends Wall {
     constructor(x, y, w, h) {
         super(
-            V(x - w/2, y - h/2),
-            V(x + w/2, y - h/2),
+            V(x - w/2, y + h/2),
             V(x + w/2, y + h/2),
-            V(x - w/2, y + h/2))
+            V(x + w/2, y - h/2),
+            V(x - w/2, y - h/2))
+    }
+}
+
+class NSidedWall extends Wall {
+    constructor(cx, cy, r, n) {
+        var vertices = [];
+        for (var i = n; i > 0; i--) {
+            var px = cx + r * Math.cos(Math.PI * 2 * i/n)
+            var py = cy + r * Math.sin(Math.PI * 2 * i/n)
+            vertices.push(V(px, py))
+        }
+        super(...vertices)
     }
 }

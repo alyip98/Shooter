@@ -103,12 +103,13 @@ class Game {
 		this.isOver = false;
 		this.mode = Mode.PVE;
 
-		this.registerWall(new SquareWall(W/2, H/2, 400, 100));
+		var size = 100
+		this.registerWall(new NSidedWall(W/2, H/2, 200, 6));
 		//spawnEnemy()
 	}
 
 	tick() {
-		var dt = Date.now() - this.oldTime
+		var dt = (Date.now() - this.oldTime) * Settings.tickrate
 		if (this.isPaused) {
 			this.render();
 			return;

@@ -52,12 +52,18 @@ class Entity {
 		var vy = this.v * Math.sin(this.dir)
 
 		this.path.start = V(this.x, this.y);
-		this.path.end = V(this.x + vx, this.y + vy);
+		this.path.end = V(this.x + vx * dts, this.y + vy * dts);
 
-		if (!this.checkWallCollisions()) {
-			this.x += vx * dts
-			this.y += vy * dts
+		var pathLength = this.path.asVector().getLength();
+		console.log(pathLength)
+		var chg
+		if ((chg = this.checkWallCollisions())) {
+			var dv = chg.getLength()
+			var a = Math.atan2(chg.y, chg.x)
+			this.force(dv * -0.3, a)
 		}
+		this.x += vx * dts
+		this.y += vy * dts
 
 		this.dmgText.tick(dt);
 	}
@@ -94,10 +100,6 @@ class Entity {
 	}
 
 	checkWallCollisions() {
-		/*var currentPos = V(this.x, this.y);
-		var dt = 1 / 1000
-		var out = []
-		var nextPos = V(this.x + this.v * Math.cos(this.dir) * dt, this.y + this.v * Math.sin(this.dir) * dt)*/
 		var hits = [];
 		for (var i = 0; i < game.walls.length; i++) {
 			var wall = game.walls[i];
@@ -108,21 +110,21 @@ class Entity {
 		}
 
 
-		var sortedHits = hits.map(hit => [hit.point2, hit.point2.distTo(this.path.start)])
+		var sortedHits = hits.map(hit => [hit.point2, hit.point2.distTo(this.path.start)]).sort((a, b) => a[1] - b[1])
 		if (sortedHits.length > 0) {
-			console.log(sortedHits);
+			if (Settings.debug) console.log(sortedHits);
+			var change = V(this.x, this.y).sub(sortedHits[0][0])
 			this.x = sortedHits[0][0].x;
 			this.y = sortedHits[0][0].y;
-			return true;
+			return change;
 		}
 		// sort by distance?
 		// hits.sort();
 		return false;
-
 	}
 
 	hitTestPath(line, nextPos) {
-		var d = this.currentPos;
+		/*var d = this.currentPos;
 		var c = nextPos;
 		var a = line.start;
 		var b = line.end;
@@ -136,7 +138,7 @@ class Entity {
 		var e = intersect[2];
 		var h = this.size / Math.sin(theta); // hypotenuse
 		var p = e.add(cd.getUnitVector().mul(h));
-		return p;
+		return p;*/
 	}
 
 	setSpeed(vx, vy) {

@@ -42,6 +42,10 @@ class Vector {
     static random(x = 1, y = 1) {
         return new Vector(Math.random() * x, Math.random() * y);
     }
+
+    render(size = 4) {
+        ctx.fillRect(this.x - size / 2, this.y - size / 2, size, size)
+    }
 }
 
 class Polygon {
@@ -52,12 +56,6 @@ class Polygon {
         this.center = V(0, 0);
         for (var i = 0; i < this.numVertices; i++) {
             this.sides.push(new Line(this.vertices[i], this.vertices[(i + 1) % this.numVertices]));
-        }
-    }
-
-    render() {
-        for (var i = 0; i < this.sides.length; i++) {
-            this.sides[i].render();
         }
     }
 
@@ -78,7 +76,14 @@ class Polygon {
         var obj = {
             hits: []
         };
+        var pathVector = path.asVector();
         for (var i in this.sides) {
+            // back face culling
+            var side = this.sides[i]
+            var normal = side.asVector().getNormalVector()
+            if (normal.dot(pathVector) > 0) {
+                continue
+            }
             var hitResult = path.hitTestPath(this.sides[i]);
             if (hitResult) {
                 obj.hits.push(hitResult);
@@ -104,6 +109,14 @@ class Polygon {
             ctx.beginPath()
             ctx.moveTo(side.start.x, side.start.y);
             ctx.lineTo(side.end.x, side.end.y);
+            ctx.stroke();
+            ctx.closePath();
+
+            var mid = side.start.add(side.end).mul(0.5)
+            var normal = mid.add(side.end.sub(side.start).getNormalVector().getUnitVector().mul(50))
+            ctx.beginPath()
+            ctx.moveTo(mid.x, mid.y);
+            ctx.lineTo(normal.x, normal.y);
             ctx.stroke();
             ctx.closePath();
         }
@@ -163,6 +176,10 @@ class Line {
             return obj;
         }
         return false;
+    }
+
+    getNormalVector() {
+        return this.end.sub(this.start).getNormalVector();
     }
 
     hitTestCircle(circle) {
@@ -238,6 +255,24 @@ class Path extends Line {
     render() {
         super.render();
         setStrokeStyle("white");
+        var normal = this.asVector().getNormalVector().getUnitVector().mul(this.size);
+        ctx.beginPath();
+        ctx.moveTo(this.start.add(normal).x, this.start.add(normal).y, this.size, 0, Math.PI * 2);
+        ctx.lineTo(this.end.add(normal).x, this.end.add(normal).y, this.size, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(this.start.sub(normal).x, this.start.sub(normal).y, this.size, 0, Math.PI * 2);
+        ctx.lineTo(this.end.sub(normal).x, this.end.sub(normal).y, this.size, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(this.start.x, this.start.y, this.size, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.stroke();
+
         ctx.beginPath();
         ctx.arc(this.start.x, this.start.y, this.size, 0, Math.PI * 2);
         ctx.closePath();
@@ -258,6 +293,30 @@ class Path extends Line {
         var b = this.end;
         var c = line.start;
         var d = line.end;
+        var r2 = this.size * this.size;
+
+        // case 5: initial colliding
+        var perpA = perp(c, d, a)
+        if (perpA.distsq <= r2 && 0 <= perpA.d && perpA.d <= 1) {
+            var dist = Math.sqrt(perpA.distsq)
+            var normal = d.sub(c).getNormalVector().getUnitVector();
+            var infront = a.sub(c).dot(normal) > 0
+            if (infront) {
+                dist = this.size - dist
+            } else {
+                dist += this.size
+            }
+            return {
+                case: 5,
+                message: infront,
+                point1: a.add(normal.mul(-dist)),
+                point2: a.add(normal.mul(dist))
+            }
+        }
+
+        // case 1: intersect middle
+        var hc = distsqLineSegment(a, b, c)
+        var hd = distsqLineSegment(a, b, d)
         var x1 = this.start.x;
         var x2 = this.end.x;
         var x3 = line.start.x;
@@ -270,64 +329,123 @@ class Path extends Line {
             ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
         var ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) /
             ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
-        if (0 <= ua && ua <= 1 && 0 <= ub && ub <= 1) {
+        if ((hc > r2 || hd > r2) && 0 <= ua && ua <= 1 && 0 <= ub && ub <= 1) {
             var p1 = this.start.add(this.end.sub(this.start).mul(ua))
             var theta = p1.sub(a).getAngle(c.sub(p1));
             var l = this.size / Math.sin(theta)
-            console.log("case 1")
-            return {
-                ua: ua,
-                ub: ub,
-                point1: p1,
-                point2: p1.sub(this.end.sub(this.start).getUnitVector().mul(l))
+            if (a.sub(b).dot(c.sub(d).getNormalVector()) >= 0) {
+                l *= -1;
             }
+            var p2 = p1.sub(this.end.sub(this.start).getUnitVector().mul(l))
+            var perp1 = perp(c, d, p2)
+            if (0 <= perp1.d && perp1.d <= 1)
+                return {
+                    case: 1,
+                    message: ua.toFixed(2) + " - " + ub.toFixed(2),
+                    point1: p1,
+                    point2: p2
+                    }
+
         }
 
+        // check if it clips the sides
         var p1, p2;
-        var found = true;
-        var r2 = this.size * this.size;
         var h;
         var aux = a;
-        if ((h = distsqLineSegment(c, d, a)) <= r2) {
-            p1 = a;
-            var dist = Math.sqrt(h)
-            console.log("case 5")
+        var caseNum = 0;
+        var perpHeight = -1;
+        var ab = b.sub(a);
+        var cd = d.sub(c);
+        var perp2;
+
+        if (hc <= r2 && hd <= r2) {
+            if (ab.dot(cd) >= 0) {
+                p1 = c;
+                perp2 = perp(a, b, c)
+                perpHeight = perp2.distsq;
+                caseNum = 2;
+            } else {
+                p1 = d;
+                perp2 = perp(a, b, d)
+                perpHeight = perp2.distsq;
+                caseNum = 3;
+            }
+        } else if (hc <= r2) {
+            p1 = c;
+            perp2 = perp(a, b, c)
+            perpHeight = perp2.distsq;
+            caseNum = 2;
+        } else if (hd <= r2) {
+            p1 = d;
+            perp2 = perp(a, b, d)
+            perpHeight = perp2.distsq;
+            caseNum = 3;
+        }
+
+        if (perpHeight >= 0) {
+            var msg = Math.sqrt(perpHeight).toFixed(2)
+            var hypotenuse = p1.sub(a).getLength();
+            var perpP1 = perp(a, b, p1)
+            setFillStyle("magenta")
+            perp2.point.render(8);
+            // var perpP2 = perp(c, d, )
+            var f = perpP1.point;
+            setFillStyle("orange")
+            dot(f.x, f.y, 4)
+            var l2 = Math.sqrt(r2 - perpHeight);
+            var aprime = f.sub(f.sub(a).getUnitVector().mul(l2))
+            var aprimeFoot = perp(c, d, aprime)
+            if (0 <= aprimeFoot.d && aprimeFoot.d <= 1) {
+                msg += " apf"
+                var p2 = new Line(a, b).findIntersect(new Line(c, d))[2]
+                var theta = ab.getAngle(cd)
+                var l3 = this.size / Math.sin(theta)
+                var p3 = p2.add(a.sub(p2).getUnitVector().mul(l3))
+                aprime = p3;
+            }
             return {
+                case: caseNum,
+                message: msg,
+                point1: p1,
+                point2: aprime
+            }
+        }
+
+        // check end position
+        var perpB = perp(c, d, b)
+        perpB.point.render(8)
+        if (perpB.distsqClamped <= r2 && 0 <= perpB.d && perpB.d <= 1) {
+            var dist = Math.sqrt(perpB.distsq)
+            var normal = d.sub(c).getNormalVector().getUnitVector();
+            var infront = b.sub(c).dot(normal) > 0
+            if (infront) {
+                dist = this.size - dist
+            } else {
+                dist += this.size
+            }
+            return {
+                case: 4,
+                message: infront,
+                point1: b,
+                point2: b.add(normal.mul(dist))
+            }
+        }
+
+
+        /*if (hb <= r2) {
+            var ab = new Line(a, b);
+            var cd = new Line(c, d);
+            var e = ab.findIntersect(cd)[2];
+            var eb = b.sub(e).mul(Math.sqrt(r2 / hb));
+            var p2 = e.add(eb)
+            return {
+                case: 4,
                 ua: ua,
                 ub: ub,
-                point1: a.add(b.sub(a).getUnitVector().mul(dist)),
-                point2: a.add(c.sub(d).getNormalVector().getUnitVector().mul(dist - this.size))
+                point1: e,
+                point2: p2
             }
-        } else if ((h = distsqLineSegment(a, b, c)) <= r2) {
-            p1 = d;
-            console.log("case 2", a, b, c)
-        } else if ((h = distsqLineSegment(a, b, d)) <= r2) {
-            p1 = d;
-            console.log("case 3", a, b, d)
-        } else if ((h = distsqLineSegment(c, d, b)) <= r2) {
-            
-            console.log("case 4", c, d, b)
-        } else {
-            found = false;
-        }
-        if (!found) return false;
-
-        var dist = p1.sub(aux).getLength();
-        var l1 = Math.sqrt(dist * dist - h);
-        var l2 = Math.sqrt(r2 - h);
-        /*
-        var theta = Math.cos(h/r);
-        var beta = p.sub(a).getAngle(b.sub(a));
-        var alpha = Math.PI/2 - theta - beta*/
-        var p2 = a.add(b.sub(a).getUnitVector().mul(l1 - l2));
-        console.log(dist, h, l1, l2, p2)
-        // var f =
-        return {
-            ua: ua,
-            ub: ub,
-            point1: p1,
-            point2: p2
-        }
+        }*/
 
     }
 }
@@ -349,6 +467,29 @@ function distsqLineSegment(a, b, c) {
     var ac = c.sub(a)
     var d = Math.max(0, Math.min(1, ac.dot(ab) / Math.pow(ab.len(), 2)))
     return distsqTo(a.add(ab.mul(d)), c)
+}
+
+function perpFoot(a, b, c) {
+    var ab = b.sub(a)
+    var ac = c.sub(a)
+    var d = ac.dot(ab) / Math.pow(ab.len(), 2)
+    return a.add(ab.mul(d))
+}
+
+function perp(a, b, c) {
+    var ab = b.sub(a)
+    var ac = c.sub(a)
+    var d = ac.dot(ab) / Math.pow(ab.len(), 2)
+    var clamped = Math.max(0, Math.min(1, d))
+    var pt = a.add(ab.mul(d))
+    var ptClamped = a.add(ab.mul(clamped))
+    return {
+        distsq: distsqTo(pt, c),
+        distsqClamped: distsqTo(ptClamped, c),
+        d: d,
+        point: pt,
+        pointClamped: ptClamped
+    }
 }
 
 function shortestDistPointOnLineSegment(a, b, c) {

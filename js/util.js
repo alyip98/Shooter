@@ -33,3 +33,15 @@ function setLineWidth(width) {
 	ctx.lineWidth = width;
 	return tmp;
 }
+
+function line(x1, y1, x2, y2) {
+	ctx.beginPath()
+	ctx.moveTo(x1, y1)
+	ctx.lineTo(x2, y2)
+	ctx.closePath()
+	ctx.stroke()
+}
+
+function dot(x, y, size = 4) {
+	ctx.fillRect(x - size / 2, y - size / 2, size, size)
+}

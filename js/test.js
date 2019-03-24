@@ -8,7 +8,7 @@ var walls = [];
 
 var controlling = false;
 
-var thing = new Path(V(0, 0), Vector.random().sub(Vector.random().mul(0.5)).mul(400))
+var thing = new Path(V(0, 0), Vector.random().sub(Vector.random().mul(0.5)).mul(100), 100)
 
 function init() {
     var c = document.createElement("canvas");
@@ -29,7 +29,9 @@ function init() {
             c.sub(hv).add(vv)))*/
         // lines.push(new Line(Vector.random(W, H), Vector.random(W, H)));
     }
-    walls.push(new Wall(V(W/2, H/2), V(W/2, H/2 + 150), V(W/2 + 150, H/2)))
+
+    var size = 500;
+    walls.push(new NSidedWall(W/2, H/2, 200, 12))
     // walls.push(new SquareWall(W / 2, H / 2, 100, 100));
 
     window.onmousedown = e => controlling = true;
@@ -56,9 +58,19 @@ function render() {
             arr.sort()
             for (var j in hitResult.hits) {
                 var hitSide = hitResult.hits[j];
-                setStrokeStyle("green")
+                // setStrokeStyle("green")
                 setFillStyle("white")
-                ctx.fillText(hitSide.ua.toFixed(2) + ":" + hitSide.ub.toFixed(2), hitSide.point1.x, hitSide.point1.y);
+                ctx.font = "20px sans-serif"
+                // ctx.fillText(hitSide.ua.toFixed(2) + ":" + hitSide.ub.toFixed(2), hitSide.point1.x, hitSide.point1.y);
+                var suggested = hitSide.point2;
+                setStrokeStyle("yellow")
+                console.log(hitSide)
+                ctx.beginPath();
+                ctx.arc(suggested.x, suggested.y, thing.size, 0, Math.PI * 2);
+                ctx.fillText(hitSide.case + ": " + hitSide.message, suggested.x, suggested.y)
+                ctx.stroke();
+                ctx.closePath();
+
                 setFillStyle("green")
                 ctx.fillRect(hitSide.point1.x - size / 2, hitSide.point1.y - size / 2, size, size);
                 setFillStyle("blue")
