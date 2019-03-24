@@ -102,7 +102,7 @@ class Game {
 		this.isOver = false;
 		this.mode = Mode.PVP;
 
-		this.registerWall(new Wall(W/2, H/2, 400, 100));
+		// this.registerWall(new Wall(W/2, H/2, 400, 100));
 		//spawnEnemy()
 	}
 
@@ -121,6 +121,7 @@ class Game {
 			this.players[i].tick(dt)
 			if (!this.players[i].toRemove) {
 				alive++;
+				livingPlayers.push(this.players[i]);
 			}
 		}
 		if (this.mode == Mode.PVE && alive == 0 && this.players.length > 0) {
@@ -128,6 +129,7 @@ class Game {
 		}
 
 		if (this.mode == Mode.PVP && alive == 1) {
+			this.winner = livingPlayers[0].name;
 			gameOver();
 		}
 
@@ -191,6 +193,7 @@ class Game {
 		if (this.isOver) {
 			ctx.fillStyle = "white";
 			ctx.fillText("Game Over", W/2, H/2);
+			ctx.fillText("Winner: " + this.winner, W/2, H/2 + 15);
 			return;
 		}
 

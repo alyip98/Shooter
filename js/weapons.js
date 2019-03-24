@@ -110,15 +110,16 @@ class AmmoBasedWeapon extends Weapon {
 class Bow extends ChargeBasedWeapon {
 	constructor(owner) {
 		super(owner);
-		this.damage = 10;
+		this.damage = 30;
 		this.speedPenalty = 0.9;
 		this.projectileSpeed = 11000;
+		this.minCharge = 0.3;
 	}
 
 	fire() {
 		var player = this.owner;
 		var proj = new Arrow(player.x, player.y, this.projectileSpeed * this.currCharge/this.maxCharge, player.shootDir + (-0.5 + Math.random()) * Math.PI / 100, player);
-		proj.damage = (this.currCharge / 750 + 1) * this.damage;
+		proj.damage = (0.9 * this.currCharge / this.maxCharge + 0.1) * this.damage;
 		proj.fxn = 0.9;
 		proj.knockbackCoeff = 0.5;
 		if (this.currCharge >= this.maxCharge) {

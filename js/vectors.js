@@ -38,6 +38,10 @@ class Vector {
         this.angle = Math.atan2(this.y, this.x);
         return this;
     }
+
+    static random(x = 1, y = 1) {
+        return new Vector(Math.random() * x, Math.random() * y);
+    }
 }
 
 function VP(len, ang){
@@ -97,8 +101,31 @@ class Polygon {
         this.numVertices = args.length;
         this.vertices = [...args];
         this.sides = [];
+        this.center = V(0, 0);
         for (var i = 0; i < this.numVertices; i++) {
-            this.sides.push([this.vertices[i], this.vertices[(i + 1)%this.numVertices]]);
+            this.sides.push(new Line(this.vertices[i], this.vertices[(i + 1)%this.numVertices]));
+        }
+    }
+
+    render() {
+        for (var i = 0; i < this.sides.length; i++) {
+            this.sides[i].render();
+        }
+    }
+
+    hitTestLine(line) {
+        for(var i in this.sides) {
+            if (this.sides[i].hitTestLine(line)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    move(displacement) {
+        this.center = this.center.add(displacement);
+        for(var i in this.sides) {
+            this.sides[i].move(displacement);
         }
     }
 }
@@ -107,6 +134,61 @@ class Line {
     constructor(start, end) {
         this.start = start;
         this.end = end;
+    }
+
+    render() {
+        ctx.beginPath();
+        ctx.moveTo(this.start.x, this.start.y);
+        ctx.lineTo(this.end.x, this.end.y);
+        ctx.stroke();
+        ctx.closePath();
+    }
+
+    hitTestLine(line) {
+        var x1 = this.start.x;
+        var x2 = this.end.x;
+        var x3 = line.start.x;
+        var x4 = line.end.x;
+        var y1 = this.start.y;
+        var y2 = this.end.y;
+        var y3 = line.start.y;
+        var y4 = line.end.y;
+        var ua = ((x4 - x3) * (y1 - y3) - (y4- y3) * (x1 - x3))/
+            ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
+        var ub = ((x2 - x1) * (y1 - y3) - (y2- y1) * (x1 - x3))/
+            ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
+        return (0 <= ua && ua <= 1 && 0 <= ub && ub <= 1)
+    }
+
+    hitTestCircle(circle) {
+        return distsqLineSegment(this.start, this.end, circle.center) <= circle.radius * circle.radius;
+    }
+
+    move(displacement) {
+        this.start = this.start.add(displacement);
+        this.end = this.end.add(displacement);
+    }
+}
+
+class Circle {
+    constructor (center, radius) {
+        this.center = center;
+        this.radius = radius;
+    }
+
+    hitTestLine(line) {
+        return line.hitTestCircle(this);
+    }
+
+    render() {
+        ctx.beginPath();
+        ctx.arc(this.center.x, this.center.y, this.radius, 0, Math.PI * 2)
+        ctx.stroke();
+        ctx.closePath();
+    }
+
+    move(displacement) {
+        this.center = this.center.add(displacement);
     }
 }
 

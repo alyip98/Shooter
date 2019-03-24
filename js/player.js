@@ -8,7 +8,7 @@ class Player extends Entity {
 		this.attackCD = 1000
 		this.attackCDcurr = 0
 		this.hpRegenRate = 1;
-		this.weapons = [new SubMachineGun(this)];
+		this.weapons = [new Bow(this), new SubMachineGun(this), new Shotgun(this)];
 		this.currentWeapon = 0
 		this.weapon = this.weapons[this.currentWeapon];
 		this.controller = new Controller();
