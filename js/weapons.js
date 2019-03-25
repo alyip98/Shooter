@@ -225,12 +225,14 @@ class Shotgun extends AmmoBasedWeapon {
 class SubMachineGun extends AmmoBasedWeapon {
 	constructor(owner) {
 		super(owner);
-		this.damage = 0.55;
-		this.maxAmmo = 200;
-		this.ammo = 200;
-		this.rof = 2;
-		this.reloadTime = 5000;
+		this.damage = 0.35;
+		this.maxAmmo = 90;
+		this.ammo = 90;
+		this.rof = 10;
+		this.reloadTime = 2500;
 		this.accuracy = 0.95;
+		this.projectileSpeed = 4000
+		this.speedPenalty = 1.4
 	}
 
 	fire() {
@@ -238,10 +240,10 @@ class SubMachineGun extends AmmoBasedWeapon {
 			var player = this.owner;
 			var offsetX = i * player.size / this.rof * Math.cos(player.shootDir);
 			var offsetY = i * player.size / this.rof * Math.sin(player.shootDir);
-			var proj = new Projectile(player.x + offsetX, player.y + offsetY, 10000 * (0.5 + Math.random() / 2), player.shootDir + (-0.5 + Math.random()) * Math.PI * (1 - this.accuracy), player)
+			var proj = new PistolProjectile(player.x + offsetX, player.y + offsetY, this.projectileSpeed * (0.8 + Math.random() * 0.2), player.shootDir + (-0.5 + Math.random()) * Math.PI * (1 - this.accuracy), player)
 			proj.damage = this.damage
 			proj.knockbackCoeff = 0.01
-			proj.fxn = 0.99
+			proj.fxn = 1
 			game.registerProjectile(proj)
 			super.fire();
 		}

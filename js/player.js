@@ -8,11 +8,11 @@ class Player extends Entity {
 		this.attackCD = 1000
 		this.attackCDcurr = 0
 		this.hpRegenRate = 1;
-		this.weapons = [new Bow(this), new Pistol(this), new Shotgun(this)];
+		this.weapons = [new Bow(this), new Pistol(this), new Shotgun(this), new SubMachineGun(this)];
 		this.currentWeapon = 0
 		this.weapon = this.weapons[this.currentWeapon];
 		this.controller = new Controller();
-		this.skills={
+		this.skills = {
 			skill1: new Dash(this)
 		};
 		this.speed = 5;
@@ -25,10 +25,10 @@ class Player extends Entity {
 
 		this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
 
-		this.switchWeapon = cdfunc(function(n){
+		this.switchWeapon = cdfunc(function(n) {
 			this.currentWeapon += n;
-				if (this.currentWeapon < 0)
-					this.currentWeapon += this.weapons.length;
+			if (this.currentWeapon < 0)
+				this.currentWeapon += this.weapons.length;
 			this.currentWeapon = (this.currentWeapon) % this.weapons.length;;
 			this.weapon = this.weapons[this.currentWeapon];
 		}, 500)
@@ -48,17 +48,17 @@ class Player extends Entity {
 		/*
 		Temporary border code
 		*/
-		if (this.x - this.size/2 < 0) {
-			this.x = this.size/2;
+		if (this.x - this.size / 2 < 0) {
+			this.x = this.size / 2;
 		}
-		if (this.y - this.size/2 < 0) {
-			this.y = this.size/2;
+		if (this.y - this.size / 2 < 0) {
+			this.y = this.size / 2;
 		}
-		if (this.x + this.size/2 > W) {
-			this.x = W - this.size/2;
+		if (this.x + this.size / 2 > W) {
+			this.x = W - this.size / 2;
 		}
-		if (this.y + this.size/2 > H) {
-			this.y = H - this.size/2;
+		if (this.y + this.size / 2 > H) {
+			this.y = H - this.size / 2;
 		}
 
 		var magnitude = this.controller.getInput("stickMagnitude")
@@ -66,8 +66,10 @@ class Player extends Entity {
 
 		var effectiveSpeed = this.speed * this.weapon.speedPenalty;
 		this.force(effectiveSpeed * magnitude, angle);
-		if (magnitude > 0)
+		if (magnitude > 0) {
 			this.shootDir = this.dir;//Math.atan2(my - this.y, mx - this.x);
+			this.lookDir = angle;
+		}
 
 		if (this.controller.getInput("lt")) {
 			this.switchWeapon(-1)
@@ -79,7 +81,7 @@ class Player extends Entity {
 
 		//shooting
 		if (this.weapon.tick)
-            this.weapon.tick(dt);
+			this.weapon.tick(dt);
 
 		if (this.controller.getInput("btn2")) {
 			this.weapon.charge(dt)
@@ -87,18 +89,18 @@ class Player extends Entity {
 			this.weapon.release();
 		}
 
-		if(this.skills.skill1){
+		if (this.skills.skill1) {
 			this.skills.skill1.tick(dt);
-			if(this.controller.getInput("btn3")){
+			if (this.controller.getInput("btn3")) {
 				this.skills.skill1.channel(dt);
 			} else {
 				this.skills.skill1.cancelCast();
 			}
 		}
 
-		if(this.skills.skill2){
+		if (this.skills.skill2) {
 			this.skills.skill2.tick(dt);
-			if(this.controller.getInput("btn6")){
+			if (this.controller.getInput("btn6")) {
 				this.skills.skill2.channel(dt);
 			} else {
 				this.skills.skill2.cancelCast();
@@ -108,7 +110,7 @@ class Player extends Entity {
 	}
 
 	render() {
-        super.render();
+		super.render();
 		if (this.toRemove) {
 			var fs = setFillStyle("grey");
 			ctx.beginPath()
@@ -122,11 +124,11 @@ class Player extends Entity {
 
 		ctx.font = "24px sans-serif"
 		var textWidth = ctx.measureText(this.name).width;
-		ctx.fillText(this.name, this.x - textWidth/2, this.y - this.size/2 - 10);
+		ctx.fillText(this.name, this.x - textWidth / 2, this.y - this.size / 2 - 10);
 
 		setFillStyle(this.color);
 		var ss = setStrokeStyle(this.color);
-		var lw = setLineWidth(4)
+		var lw = setLineWidth(2)
 
 		// outline
 		ctx.beginPath()
@@ -136,9 +138,9 @@ class Player extends Entity {
 
 		// fill
 		ctx.beginPath()
-		var degToPi = Math.PI/180
-		var t = 0.1 + this.hp/this.hpMax * 0.9 // Math.sin(Date.now()/1000)/2 + 0.5
-		ctx.arc(this.x, this.y, this.size / 2, t * -180 * degToPi + 90 * degToPi, t * 180 * degToPi + 90 * degToPi)
+		var degToPi = Math.PI / 180
+		var t = (this.hp / this.hpMax) // Math.sin(Date.now()/1000)/2 + 0.5
+		ctx.arc(this.x, this.y, this.size / 2, (90 - 180 * t) * degToPi, (90 + 180 * t) * degToPi)
 		ctx.closePath()
 		ctx.fill()
 

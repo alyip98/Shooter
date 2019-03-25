@@ -19,6 +19,7 @@ class Entity {
 		this.dmgText = new DamageText(this);
 		this.lastX = 0
 		this.lastY = 0
+		this.lookDir = 0;
 	}
 
 	addBuff(buff) {
@@ -60,11 +61,14 @@ class Entity {
 
 		var pathLength = this.path.asVector().getLength();
 		// console.log(pathLength)
-		var chg
-		if ((chg = this.checkWallCollisions())) {
+		var collision
+		if ((collision = this.checkWallCollisions())) {
+			var chg = collision.point.sub(this.path.end)
 			var dv = chg.getLength()
 			var a = Math.atan2(chg.y, chg.x)
-			this.force(dv * -0.3, a)
+			this.force(dv * collision.bounciness, a)
+			if (collision.friction)
+				this.v *= (1 - chg.friction)
 		} else {
 			this.x += vx * dts
 			this.y += vy * dts
@@ -115,13 +119,15 @@ class Entity {
 		}
 
 
-		var sortedHits = hits.map(hit => [hit.point2, hit.point2.distTo(this.path.start)]).sort((a, b) => a[1] - b[1])
+		var sortedHits = hits.map(hit => [hit, hit.point2.distTo(this.path.start)]).sort((a, b) => a[1] - b[1])
 		if (sortedHits.length > 0) {
+			var obj = sortedHits[0][0]
 			if (Settings.debug) console.log(sortedHits);
-			var change = V(this.x, this.y).sub(sortedHits[0][0])
-			this.x = sortedHits[0][0].x;
-			this.y = sortedHits[0][0].y;
-			return change;
+			var point = sortedHits[0][0].point2
+			obj.point = point
+			this.x = point.x;
+			this.y = point.y;
+			return obj;
 		}
 		// sort by distance?
 		// hits.sort();

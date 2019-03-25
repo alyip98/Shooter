@@ -41,6 +41,7 @@ class Projectile {
 
         var collisions = this.checkCollisions(dt);
 		collisions.sort((a, b) => a[1] - b[1]);
+		// console.log("sorted collisions", collisions)
         for (var i = 0; i < collisions.length; i++) {
             if (this.hitList.indexOf(collisions[i][0]) == -1)
                 this.collide(collisions[i][0]);
@@ -112,12 +113,17 @@ class Projectile {
 				out.push([targets[i], Math.sqrt(dd)]);
         }
 
+		var linearPath = new Line(currentPos, nextPos)
 		for (var i = 0; i < game.walls.length; i++) {
 			var sides = game.walls[i].sides;
 			for (var j = 0; j < sides.length; j++) {
-				var d = distLineSegments(currentPos, nextPos, sides[j].start, sides[j].end);
+				var sideLine = new Line(sides[j].start, sides[j].end)
+				var intersect = linearPath.findIntersect(sideLine)
+				var ua = intersect[0]
+				var ub = intersect[1]
+				var d = currentPos.distTo(intersect[2])// distLineSegments(currentPos, nextPos, sides[j].start, sides[j].end);
 				// console.log(currentPos, nextPos, sides[j][0], sides[j][1], d)
-				if (d < this.size) {
+				if (0 <= ua && ua <= 1 && 0 <= ub && ub <= 1) {
 					out.push([game.walls[i], d]);
 				}
 			}
@@ -194,13 +200,17 @@ class Arrow extends Projectile{
 class PistolProjectile extends Projectile {
 	constructor(x, y, v, dir, owner){
 		super(x, y, v, dir, owner);
+		this.lineWidth = 2;
+		this.trailLength = 0.3;
 	}
 
 	render() {
 		setStrokeStyle("yellow")
-		setLineWidth(4)
+		setLineWidth(this.lineWidth)
 		ctx.beginPath()
-		ctx.moveTo(this.lastX, this.lastY)
+		var last = V(this.lastX, this.lastY)
+		last = last.mul(this.trailLength).add(V(this.x, this.y).mul(1 - this.trailLength))
+		ctx.moveTo(last.x, last.y)
 		ctx.lineTo(this.x, this.y)
 		ctx.stroke()
 		ctx.closePath()

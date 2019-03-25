@@ -2,6 +2,9 @@ class Wall extends Polygon {
     constructor(...args) {
         super(...args);
         this.color = "white";
+        this.friction = 0
+        this.bounciness = 0.3;
+        this.lineWidth = 1;
     }
 
     collides(entity) {
@@ -26,8 +29,20 @@ class Wall extends Polygon {
     damage() {}
 
     render() {
+        setLineWidth(this.lineWidth);
         setStrokeStyle(this.color);
         super.render();
+    }
+
+    hitTestPath(path) {
+        var obj = super.hitTestPath(path);
+        if (!obj) return false;
+        obj.hits = obj.hits.map(x => {
+            x.friction = this.friction
+            x.bounciness = this.bounciness
+            return x
+        })
+        return obj;
     }
 }
 

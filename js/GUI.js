@@ -128,7 +128,7 @@ class DamageText extends Text {
             //console.log(this);
             var tmp = ctx.font;
             ctx.font = this.size.toFixed() + "px sans-serif"
-            console.log(ctx.font)
+            // console.log(ctx.font)
             var offX = ctx.measureText(this.getText()).width
             ctx.fillText(this.getText(), this.boundObject.x + this.offsetX - offX/2, this.boundObject.y + this.offsetY);
             ctx.font = tmp;
@@ -172,7 +172,7 @@ class FPSTracker extends Text {
         this.pastFrameTimes = []
         this.sumFrameTime = 0
         this.lastTime = Date.now()
-        this.maxFrameHistory = 200
+        this.maxFrameHistory = 60
     }
 
     render() {

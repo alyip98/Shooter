@@ -149,7 +149,7 @@ class Dash extends Skill {
         super.cast();
 
         this.effectTime = this.effectDuration;
-        this.dir = this.owner.shootDir;
+        this.dir = this.owner.lookDir;
     }
     render() {
         var player = this.owner;
@@ -164,7 +164,8 @@ class Dash extends Skill {
         this.effectTime -= dt;
 
         if (this.effectTime > 0) {
-            this.owner.force(this.force * dt/1000, this.dir)
+            var effectiveForce = this.force * Math.pow(this.effectTime/this.effectDuration + 0.5, 5)
+            this.owner.force(effectiveForce * dt/1000, this.dir)
         }
     }
 }

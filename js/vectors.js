@@ -296,6 +296,7 @@ class Path extends Line {
         var c = line.start;
         var d = line.end;
         var r2 = this.size * this.size;
+        var relaxedr2 = r2 * 0.9
         // check end position
         var perpB = perp(c, d, b)
         var hitEnd = false;
@@ -388,7 +389,6 @@ class Path extends Line {
         var ab = b.sub(a);
         var cd = d.sub(c);
         var perp2;
-        var relaxedr2 = r2// * 0.5
 
         if (hc <= relaxedr2 && hd <= relaxedr2) {
             if (ab.dot(cd) >= 0) {
@@ -442,23 +442,6 @@ class Path extends Line {
                 point2: bprime
             }
         }
-
-
-        /*if (hb <= r2) {
-            var ab = new Line(a, b);
-            var cd = new Line(c, d);
-            var e = ab.findIntersect(cd)[2];
-            var eb = b.sub(e).mul(Math.sqrt(r2 / hb));
-            var p2 = e.add(eb)
-            return {
-                case: 4,
-                ua: ua,
-                ub: ub,
-                point1: e,
-                point2: p2
-            }
-        }*/
-
     }
 }
 
