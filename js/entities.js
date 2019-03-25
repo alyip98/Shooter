@@ -65,9 +65,10 @@ class Entity {
 			var dv = chg.getLength()
 			var a = Math.atan2(chg.y, chg.x)
 			this.force(dv * -0.3, a)
+		} else {
+			this.x += vx * dts
+			this.y += vy * dts
 		}
-		this.x += vx * dts
-		this.y += vy * dts
 
 		this.dmgText.tick(dt);
 	}

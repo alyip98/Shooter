@@ -32,7 +32,7 @@ function init() {
     }
 
     var size = 500;
-    walls.push(new NSidedWall(W/2, H/2, 200, 12))
+    walls.push(new NSidedWall(W/2, H/2, 200, 4))
     // walls.push(new SquareWall(W / 2, H / 2, 100, 100));
 
     window.onmousedown = e => controlling = true;

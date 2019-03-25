@@ -296,25 +296,47 @@ class Path extends Line {
         var c = line.start;
         var d = line.end;
         var r2 = this.size * this.size;
+        // check end position
+        var perpB = perp(c, d, b)
+        var hitEnd = false;
+        var normal = d.sub(c).getNormalVector().getUnitVector();
+        var normalOverlapDist = Math.sqrt(perpB.distsq)
+        var infront = b.sub(c).dot(normal) > 0
+        if (infront) {
+            normalOverlapDist = this.size - normalOverlapDist
+        } else {
+            normalOverlapDist += this.size
+        }
+        var bprime = b.add(normal.mul(normalOverlapDist))
+        if (perpB.distsqClamped <= r2 && 0 <= perpB.d && perpB.d <= 1) {
+            hitEnd = true;
+
+            return {
+                case: 4,
+                message: infront,
+                point1: b,
+                point2: bprime
+            }
+        }
 
         // case 5: initial colliding
         var perpA = perp(c, d, a)
         if (perpA.distsq <= r2 && 0 <= perpA.d && perpA.d <= 1) {
             var dist = Math.sqrt(perpA.distsq)
-            var normal = d.sub(c).getNormalVector().getUnitVector();
-            var infront = a.sub(c).dot(normal) > 0
             if (infront) {
-                dist = this.size - dist
+                normalOverlapDist = this.size - normalOverlapDist
             } else {
-                dist += this.size
+                normalOverlapDist += this.size
             }
             return {
                 case: 5,
                 message: infront,
                 point1: a.add(normal.mul(-dist)),
-                point2: a.add(normal.mul(dist))
+                point2: bprime
             }
         }
+
+
 
         // case 1: intersect middle
         var hc = distsqLineSegment(a, b, c)
@@ -338,14 +360,21 @@ class Path extends Line {
             if (a.sub(b).dot(c.sub(d).getNormalVector()) >= 0) {
                 l *= -1;
             }
-            var p2 = p1.sub(this.end.sub(this.start).getUnitVector().mul(l))
+            // var p2 = p1.sub(this.end.sub(this.start).getUnitVector().mul(l))
+            if (infront) {
+                normalOverlapDist = this.size - normalOverlapDist
+            } else {
+                normalOverlapDist += this.size
+            }
+            var p2 = b.add(normal.mul(normalOverlapDist))
             var perp1 = perp(c, d, p2)
+            perp1.point.render()
             if (0 <= perp1.d && perp1.d <= 1)
                 return {
                     case: 1,
                     message: ua.toFixed(2) + " - " + ub.toFixed(2),
                     point1: p1,
-                    point2: p2
+                    point2: bprime
                 }
 
         }
@@ -359,8 +388,9 @@ class Path extends Line {
         var ab = b.sub(a);
         var cd = d.sub(c);
         var perp2;
+        var relaxedr2 = r2// * 0.5
 
-        if (hc <= r2 && hd <= r2) {
+        if (hc <= relaxedr2 && hd <= relaxedr2) {
             if (ab.dot(cd) >= 0) {
                 p1 = c;
                 perp2 = perp(a, b, c)
@@ -372,12 +402,12 @@ class Path extends Line {
                 perpHeight = perp2.distsq;
                 caseNum = 3;
             }
-        } else if (hc <= r2) {
+        } else if (hc <= relaxedr2) {
             p1 = c;
             perp2 = perp(a, b, c)
             perpHeight = perp2.distsq;
             caseNum = 2;
-        } else if (hd <= r2) {
+        } else if (hd <= relaxedr2) {
             p1 = d;
             perp2 = perp(a, b, d)
             perpHeight = perp2.distsq;
@@ -393,7 +423,7 @@ class Path extends Line {
             // var perpP2 = perp(c, d, )
             var f = perpP1.point;
             setFillStyle("orange")
-            dot(f.x, f.y, 4)
+            f.render()
             var l2 = Math.sqrt(r2 - perpHeight);
             var aprime = f.sub(f.sub(a).getUnitVector().mul(l2))
             var aprimeFoot = perp(c, d, aprime)
@@ -409,27 +439,7 @@ class Path extends Line {
                 case: caseNum,
                 message: msg,
                 point1: p1,
-                point2: aprime
-            }
-        }
-
-        // check end position
-        var perpB = perp(c, d, b)
-        perpB.point.render(8)
-        if (perpB.distsqClamped <= r2 && 0 <= perpB.d && perpB.d <= 1) {
-            var dist = Math.sqrt(perpB.distsq)
-            var normal = d.sub(c).getNormalVector().getUnitVector();
-            var infront = b.sub(c).dot(normal) > 0
-            if (infront) {
-                dist = this.size - dist
-            } else {
-                dist += this.size
-            }
-            return {
-                case: 4,
-                message: infront,
-                point1: b,
-                point2: b.add(normal.mul(dist))
+                point2: bprime
             }
         }
 
