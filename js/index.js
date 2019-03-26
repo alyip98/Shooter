@@ -104,7 +104,7 @@ class Game {
 		this.mode = Mode.PVP;
 
 		this.misc.push(new FPSTracker())
-		this.registerWall(new NSidedWall(W / 2, H / 2, 10, 32));
+		this.registerWall(new NSidedWall(W / 2, H / 2, 200, 3));
 		//spawnEnemy()
 	}
 

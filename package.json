@@ -1,0 +1,23 @@
+{
+  "name": "shooter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alyip98/Shooter.git"
+  },
+  "author": "Alfred Yip",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alyip98/Shooter/issues"
+  },
+  "homepage": "https://github.com/alyip98/Shooter#readme",
+  "dependencies": {
+    "socket.io": "^2.2.0"
+  }
+}
