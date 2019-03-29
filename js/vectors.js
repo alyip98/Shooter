@@ -54,6 +54,7 @@ class Polygon {
         this.vertices = [...args];
         this.sides = [];
         this.center = V(0, 0);
+        this.renderMode = "stroke"
         for (var i = 0; i < this.numVertices; i++) {
             this.sides.push(new Line(this.vertices[i], this.vertices[(i + 1) % this.numVertices]));
         }
@@ -104,13 +105,21 @@ class Polygon {
     }
 
     render() {
+        if (this.renderMode == "fill") {
+            ctx.beginPath()
+            ctx.moveTo(this.sides[0].start.x, this.sides[0].start.y)
+        }
         for (var i in this.sides) {
             var side = this.sides[i];
-            ctx.beginPath()
-            ctx.moveTo(side.start.x, side.start.y);
-            ctx.lineTo(side.end.x, side.end.y);
-            ctx.stroke();
-            ctx.closePath();
+            if (this.renderMode == "stroke") {
+                ctx.beginPath()
+                ctx.moveTo(side.start.x, side.start.y);
+                ctx.lineTo(side.end.x, side.end.y);
+                ctx.stroke();
+                ctx.closePath();
+            } else {
+                ctx.lineTo(side.end.x, side.end.y);
+            }
 
             if (Settings.debug) {
                 var mid = side.start.add(side.end).mul(0.5)
@@ -121,6 +130,11 @@ class Polygon {
                 ctx.stroke();
                 ctx.closePath();
             }
+        }
+
+        if (this.renderMode == "fill") {
+            ctx.closePath()
+            ctx.fill()
         }
     }
 
@@ -288,6 +302,12 @@ class Path extends Line {
 
     hitTestLine(line) {
         return this.checkPathCollision(line)
+    }
+
+    hitTestCircle(circle) {
+        var rr = (this.size + circle.radius)/2
+        var dist = distsqLineSegment(this.start, this.end, circle.center)
+        return dist < rr * rr;
     }
 
     hitTestPath(line) {

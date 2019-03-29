@@ -39,12 +39,25 @@ class Player extends Entity {
 		this.y = y || H / 2
 	}
 
+	respawn() {
+		this.toRemove = false;
+		this.hp = this.hpMax;
+	}
+
 	tick(dt) {
 		super.tick(dt);
 		if (this.toRemove) {
 			return;
 		}
 
+
+		var currentPos = V(this.x, this.y)
+		for(var i in game.powerUps) {
+			var point = V(game.powerUps[i].x, game.powerUps[i].y)
+			if (point.distTo(currentPos) * 2 < game.powerUps[i].size + this.size) {
+				game.powerUps[i].apply(this);
+			}
+		}
 		/*
 		Temporary border code
 		*/
@@ -106,7 +119,6 @@ class Player extends Entity {
 				this.skills.skill2.cancelCast();
 			}
 		}
-
 	}
 
 	render() {

@@ -1,6 +1,8 @@
 
 class Entity {
-	constructor() {
+	constructor(x = 0, y = 0) {
+		this.x = x;
+		this.y = y;x
 		this.buffs = [];
 		this.speed = 5;
 		this.size = 32
@@ -76,6 +78,8 @@ class Entity {
 
 		this.dmgText.tick(dt);
 	}
+
+	destroy() {}
 
 	render() {
 		// this.HPBar.render();
@@ -164,6 +168,10 @@ class Entity {
 			this.hp = 0;
 			this.kill();
 		}
+	}
+
+	heal(healAmount) {
+		this.hp = Math.min(this.hp + healAmount, this.hpMax);
 	}
 
 	kill() {

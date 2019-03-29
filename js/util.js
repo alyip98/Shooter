@@ -50,3 +50,33 @@ function centeredText(text, x, y) {
 	var width = ctx.measureText(text).width
 	ctx.fillText(text, x - width/2, y)
 }
+
+class Timer {
+	constructor(duration) {
+		this.initialDuration = duration;
+		this.startTime = Date.now();
+		this.duration = duration;
+	}
+
+	isReady() {
+		return Date.now() - this.startTime > this.initialDuration;
+	}
+
+	ifReady(callback) {
+		if (this.isReady()) {
+			return callback();
+		}
+	}
+
+	reset(duration) {
+		if (duration) {
+			this.initialDuration = duration;
+		}
+		this.duration = this.initialDuration;
+		this.startTime = Date.now();
+	}
+
+	getRemainingTime() {
+		return Math.max(0, this.initialDuration - Date.now() + this.startTime);
+	}
+}

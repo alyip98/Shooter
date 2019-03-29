@@ -89,27 +89,68 @@ class Game {
 		this.name = "Game";
 		this.stage = 1
 		this.counter = 1
+		this.isPaused = false;
+		this.isOver = false;
+		this.mode = Mode.PVP;
 		this.enemies = []
 		this.projectiles = []
 		this.misc = []
 		this.entities = []
 		this.walls = [];
+		this.powerUps = [];
 		this.oldTime = Date.now()
 		this.doSpawn = false;
+		this.autoRestart = true;
+		this.autoRestartTimer = new Timer(3000);
 	}
+
 	init() {
 		this.timeToNextSpawn = 0;
-		this.isPaused = false;
-		this.isOver = false;
-		this.mode = Mode.PVP;
 
 		this.misc.push(new FPSTracker())
-		this.registerWall(new NSidedWall(W / 2, H / 2, 200, 3));
+		/*for (var i = 0; i < 5; i++) {
+			var center = Vector.random(W, H)
+			var sides = 3 + Math.floor(Math.random() * 3)
+			var size = 50 + Math.random() * 100
+		}*/
+
+		var hpPos = Vector.random(W/2, H/2)
+		this.misc.push(new HealthPackGenerator(hpPos.x, hpPos.y));
+		this.registerWall(new NSidedWall(W/4, H * 3/4, 100, 4));
+		this.registerWall(new NSidedWall(W/4, H * 1/4, 100, 4));
+		this.registerWall(new NSidedWall(W * 3/4, H * 3/4, 100, 4));
+		this.registerWall(new NSidedWall(W * 3/4, H * 1/4, 100, 4));
 		//spawnEnemy()
 	}
 
+	restart() {
+		for (var i in this.players) {
+			this.players[i].respawn();
+			var pos = Vector.random(W, H);
+			this.players[i].x = pos.x
+			this.players[i].y = pos.y
+		}
+
+		this.counter = 1;
+		this.enemies = [];
+		this.projectiles = [];
+		this.entities = []
+		this.walls = [];
+		this.powerUps = [];
+		this.oldTime = Date.now()
+		this.isPaused = false;
+		this.isOver = false;
+		this.registerWall(new NSidedWall(W / 2, H / 2, 200, 3));
+	}
+
 	tick() {
+		var tmp = this;
+		window.requestAnimationFrame(function() { tmp.tick() })
 		var dt = (Date.now() - this.oldTime) * Settings.tickrate
+		if (this.isOver && this.autoRestart) {
+			this.autoRestartTimer.ifReady(function(){game.restart()});
+		}
+
 		if (this.isPaused) {
 			this.render();
 			return;
@@ -119,6 +160,7 @@ class Game {
 		//tick projectiles
 		for (var i = 0; i < this.projectiles.length; i++) {
 			if (this.projectiles[i].toRemove) {
+				this.projectiles[i].destroy();
 				this.projectiles.splice(i, 1)
 				i -= 1
 			} else {
@@ -140,7 +182,7 @@ class Game {
 			gameOver();
 		}
 
-		if (this.mode == Mode.PVP && alive == 1) {
+		if (this.mode == Mode.PVP && alive == 1 && this.players.length > 1) {
 			this.winner = livingPlayers[0].name;
 			gameOver();
 		}
@@ -149,6 +191,7 @@ class Game {
 		for (var i = 0; i < this.enemies.length; i++) {
 			this.enemies[i].tick(dt);
 			if (this.enemies[i].toRemove) {
+				this.enemies[i].destroy();
 				this.enemies.splice(i, 1)
 				i -= 1
 			}
@@ -158,7 +201,18 @@ class Game {
 		for (var i = 0; i < this.misc.length; i++) {
 			this.misc[i].tick(dt)
 			if (this.misc[i].toRemove) {
+				this.misc[i].destroy();
 				this.misc.splice(i, 1)
+				i -= 1
+			}
+		}
+
+		//tick misc
+		for (var i = 0; i < this.powerUps.length; i++) {
+			this.powerUps[i].tick(dt)
+			if (this.powerUps[i].toRemove) {
+				this.powerUps[i].destroy();
+				this.powerUps.splice(i, 1)
 				i -= 1
 			}
 		}
@@ -166,6 +220,7 @@ class Game {
 		// remove expired entities
 		for (var i = 0; i < this.entities.length; i++) {
 			if (this.entities[i].toRemove) {
+				this.entities[i].destroy();
 				this.entities.splice(i, 1)
 				i -= 1
 			}
@@ -183,8 +238,6 @@ class Game {
 		this.render()
 		this.oldTime = Date.now()
 		//setTimeout(this.tick,100)
-		var tmp = this;
-		window.requestAnimationFrame(function() { tmp.tick() })
 	}
 
 	render() {
@@ -198,6 +251,7 @@ class Game {
 			ctx.font = "30px sans-serif"
 			centeredText("Game Over", W / 2, H / 2);
 			centeredText("Winner: " + this.winner, W / 2, H / 2 + 45);
+			centeredText("Restarting in " + Math.ceil(this.autoRestartTimer.getRemainingTime()/1000), W / 2, H / 2 + 90);
 			return;
 		}
 
@@ -242,11 +296,14 @@ class Game {
 			this.misc[i].render()
 		}
 
+		for (var i = 0; i < this.powerUps.length; i++) {
+			this.powerUps[i].render()
+		}
+
 		for (var i = 0; i < this.walls.length; i++) {
 			this.walls[i].render()
 		}
 	}
-
 
 	getPlayerById(id) {
 		for (var i = 0; i < this.players.length; i++) {
@@ -278,6 +335,14 @@ class Game {
 		this.entities.push(e);
 	}
 
+	registerMisc(e) {
+		this.misc.push(e);
+	}
+
+	registerPowerUps(e) {
+		this.powerUps.push(e);
+	}
+
 	registerWall(wall) {
 		this.walls.push(wall);
 	}
@@ -303,6 +368,9 @@ function newGame() {
 function gameOver() {
 	game.isPaused = true;
 	game.isOver = true;
+	if(game.autoRestart) {
+		game.autoRestartTimer.reset();
+	}
 	console.log("Game Over");
 }
 

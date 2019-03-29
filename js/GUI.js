@@ -11,6 +11,8 @@ class GUI {
     }
 
     tick() {}
+
+    destroy() {}
 }
 
 class Bar extends GUI {
@@ -45,7 +47,7 @@ class Bar extends GUI {
 }
 
 function PPT(x, y, text) {
-	game.misc.push(new PopupText(x, y, text));
+	game.registerMisc(new PopupText(x, y, text));
 }
 
 class PopupText {
@@ -160,7 +162,7 @@ class ChannelBar extends Bar{
     }
 
     getPercentage(){
-        return this.boundObject.channelDuration/obj.castTime;
+        return this.boundObject.channelDuration/this.boundObject.castTime;
     }
 }
 

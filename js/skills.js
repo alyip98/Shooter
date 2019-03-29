@@ -23,13 +23,14 @@ class Skill {
                 this.channelDuration = 0;
                 this.channeling = true;
                 this.channelBar = new ChannelBar(this);
-                game.misc.push(this.channelBar);
+                game.registerMisc(this.channelBar);
                 console.log("Begin channeling " + this.name);
             }
         }
         if (this.castTime - this.channelDuration <= 0 && this.channeling) {
             console.log("Done channeling");
-            game.misc.splice(this.channelBar, 1);
+            this.channelBar.toRemove = true;
+            // game.misc.splice(this.channelBar, 1);
             this.cast();
         }
     }
@@ -48,7 +49,7 @@ class Skill {
     reset() {
         this.channeling = false;
         this.channelDuration = 0;
-        game.misc.splice(this.channelBar, 1);
+        this.channelBar.toRemove = true;
     }
     tick(dt) {
         if (!this.channeling) {
