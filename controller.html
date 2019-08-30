@@ -76,7 +76,7 @@
 		} else {
 			sid = Math.floor(Math.random() * 1000000000);
 			storeSavedData({sessionId: sid, savedName: prompt("Display name: ")});
-			socket.emit("clientJoin", JSON.stringify(sdata));
+			socket.emit("clientNew", JSON.stringify(sdata));
 		}
 
 		socket.on("joinSuccess", function(msg) {
