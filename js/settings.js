@@ -1,4 +1,4 @@
 var Settings = {
-    debug: false,
-    tickrate: 1
-}
+  debug: false,
+  tickrate: 1
+};

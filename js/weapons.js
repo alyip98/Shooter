@@ -1,318 +1,374 @@
 class Weapon {
-	constructor(owner) {
-		this.owner = owner;
-		this.damage = 1;
-		this.cd = 0;
-		this.cdTime = 1000;
-		this.projectileSpeed = 10000;
-		this.speedPenalty = 0.75;
-	}
+  constructor(owner) {
+    this.owner = owner;
+    this.damage = 1;
+    this.cd = 0;
+    this.cdTime = 1000;
+    this.projectileSpeed = 10000;
+    this.speedPenalty = 0.75;
+  }
 
-	fire() {
+  fire() {}
 
-	}
+  charge(dt) {}
 
-	charge(dt) {
+  release() {}
 
-	}
+  tick(dt) {
+    this.cd = Math.max(this.cd - dt, 0);
+  }
 
-	release() {
-
-	}
-
-	tick(dt) {
-		this.cd = Math.max(this.cd - dt, 0);
-	}
-
-	render() {
-
-	}
+  render() {}
 }
 
 class ChargeBasedWeapon extends Weapon {
-	constructor(owner) {
-		super(owner);
-		this.currCharge = 0;
-		this.minCharge = 100;
-		this.maxCharge = 1000;
-	}
+  constructor(owner) {
+    super(owner);
+    this.currCharge = 0;
+    this.minCharge = 100;
+    this.maxCharge = 1000;
+  }
 
-	fire() {
-		this.currCharge = 0;
-	}
+  fire() {
+    this.currCharge = 0;
+  }
 
-	charge(dt) {
-		this.currCharge = Math.min(this.currCharge + dt, this.maxCharge);
-	}
+  charge(dt) {
+    this.currCharge = Math.min(this.currCharge + dt, this.maxCharge);
+  }
 
-	release() {
-		if (this.currCharge >= this.minCharge)
-			this.fire();
-	}
+  release() {
+    if (this.currCharge >= this.minCharge) this.fire();
+  }
 }
 
 class AmmoBasedWeapon extends Weapon {
-	constructor(owner) {
-		super(owner);
-		this.ammo = 0;
-		this.maxAmmo = 10;
-		this.reloadTime = 1500;
-		this.isReloading = false;
-	}
+  constructor(owner) {
+    super(owner);
+    this.ammo = 0;
+    this.maxAmmo = 10;
+    this.reloadTime = 1500;
+    this.isReloading = false;
+  }
 
-	fire() {
-		this.ammo--;
-		if (this.ammo <= 0) {
-			this.isReloading = true;
-		}
-	}
+  fire() {
+    this.ammo--;
+    if (this.ammo <= 0) {
+      this.isReloading = true;
+    }
+  }
 
-	charge(dt) {
-		if (this.ammo <= 0 && !this.isReloading) {
-			this.isReloading = true;
-		}
+  charge(dt) {
+    if (this.ammo <= 0 && !this.isReloading) {
+      this.isReloading = true;
+    }
 
-		if (this.isReloading || this.ammo <= 0 || this.cd > 0) {
-			return;
-		}
+    if (this.isReloading || this.ammo <= 0 || this.cd > 0) {
+      return;
+    }
 
-		this.fire();
-	}
+    this.fire();
+  }
 
-	tick(dt) {
-		super.tick(dt);
-		if (this.isReloading) {
-			this.ammo = Math.min(this.ammo + dt * this.maxAmmo / this.reloadTime, this.maxAmmo);
-			if (this.ammo == this.maxAmmo) {
-				this.isReloading = false;
-			}
-		}
-	}
+  tick(dt) {
+    super.tick(dt);
+    if (this.isReloading) {
+      this.ammo = Math.min(
+        this.ammo + (dt * this.maxAmmo) / this.reloadTime,
+        this.maxAmmo
+      );
+      if (this.ammo == this.maxAmmo) {
+        this.isReloading = false;
+      }
+    }
+  }
 
-	render() {
-		if (this.ammo > 0) {
-			var player = this.owner;
-			var ss = setStrokeStyle(this.isReloading ? "red" : "white")
-			var lw = setLineWidth(3);
-			ctx.beginPath()
-			var percentageAmmo = this.ammo / this.maxAmmo;
-			var width = 10;
-			// ctx.fillRect(player.x - player.size/2 - width- 10, player.y + player.size/2 - height, width, height)
-			ctx.arc(player.x, player.y, player.size / 2 + width, 0, Math.PI * 2 * percentageAmmo);
-			ctx.stroke()
-			ctx.closePath()
-			setStrokeStyle(ss);
-			setLineWidth(lw);
-		}
-	}
+  render() {
+    if (this.ammo > 0) {
+      var player = this.owner;
+      var ss = setStrokeStyle(this.isReloading ? "red" : "white");
+      var lw = setLineWidth(3);
+      ctx.beginPath();
+      var percentageAmmo = this.ammo / this.maxAmmo;
+      var width = 10;
+      // ctx.fillRect(player.x - player.size/2 - width- 10, player.y + player.size/2 - height, width, height)
+      ctx.arc(
+        player.x,
+        player.y,
+        player.size / 2 + width,
+        0,
+        Math.PI * 2 * percentageAmmo
+      );
+      ctx.stroke();
+      ctx.closePath();
+      setStrokeStyle(ss);
+      setLineWidth(lw);
+    }
+  }
 }
 
 class Bow extends ChargeBasedWeapon {
-	constructor(owner) {
-		super(owner);
-		this.damage = 20;
-		this.speedPenalty = 0.9;
-		this.projectileSpeed = 11000;
-		this.minCharge = 0.3;
-	}
+  constructor(owner) {
+    super(owner);
+    this.damage = 20;
+    this.speedPenalty = 0.9;
+    this.projectileSpeed = 11000;
+    this.minCharge = 0.3;
+  }
 
-	fire() {
-		var player = this.owner;
-		var proj = new Arrow(player.x, player.y, this.projectileSpeed * this.currCharge/this.maxCharge, player.shootDir + (-0.5 + Math.random()) * Math.PI / 100, player);
-		proj.damage = (0.95 * this.currCharge / this.maxCharge + 0.05) * this.damage;
-		proj.fxn = 0.9;
-		proj.knockbackCoeff = 0.5;
-		if (this.currCharge >= this.maxCharge) {
-			proj.penetrate = true;
-			proj.hp = 3;
-		}
-		game.registerProjectile(proj);
-		super.fire();
-	}
+  fire() {
+    var player = this.owner;
+    var proj = new Arrow(
+      player.x,
+      player.y,
+      (this.projectileSpeed * this.currCharge) / this.maxCharge,
+      player.shootDir + ((-0.5 + Math.random()) * Math.PI) / 100,
+      player
+    );
+    proj.damage =
+      ((0.95 * this.currCharge) / this.maxCharge + 0.05) * this.damage;
+    proj.fxn = 0.9;
+    proj.knockbackCoeff = 0.5;
+    if (this.currCharge >= this.maxCharge) {
+      proj.penetrate = true;
+      proj.hp = 3;
+    }
+    game.registerProjectile(proj);
+    super.fire();
+  }
 
-	render() {
-		var player = this.owner;
-		var jitterX = 0;
-		var jitterY = 0;
-		if (this.currCharge == this.maxCharge) {
-			jitterX = (Math.random() - 0.5) * 3
-			jitterY = (Math.random() - 0.5) * 3
-		}
-		this.drawBow(player.x + jitterX, player.y + jitterY, player.shootDir, player.size * 0.4, this.currCharge/this.maxCharge);
-	}
+  render() {
+    var player = this.owner;
+    var jitterX = 0;
+    var jitterY = 0;
+    if (this.currCharge == this.maxCharge) {
+      jitterX = (Math.random() - 0.5) * 3;
+      jitterY = (Math.random() - 0.5) * 3;
+    }
+    this.drawBow(
+      player.x + jitterX,
+      player.y + jitterY,
+      player.shootDir,
+      player.size * 0.4,
+      this.currCharge / this.maxCharge
+    );
+  }
 
-	drawBow(x, y, dir, size, t) {
-		var fs = setFillStyle("white");
-		var lw = setLineWidth(2);
-		var ss = setStrokeStyle("white");
+  drawBow(x, y, dir, size, t) {
+    var fs = setFillStyle("white");
+    var lw = setLineWidth(2);
+    var ss = setStrokeStyle("white");
 
-		var arcDeg = 145;
-		var degToRad = Math.PI / 180;
-		var a1 = dir - degToRad * arcDeg/2;
-		var a2 = dir + degToRad * arcDeg/2;
-		var t2 = Math.pow(t + 0.1, 1);
-		var k = 0.5;
-		if (t2 > k) t2 = k + (t2 - k)/t2;
-		var stringDrawDist = size * (0.5 - t2);
-		var arrowLength = size * 1.6;
+    var arcDeg = 145;
+    var degToRad = Math.PI / 180;
+    var a1 = dir - (degToRad * arcDeg) / 2;
+    var a2 = dir + (degToRad * arcDeg) / 2;
+    var t2 = Math.pow(t + 0.1, 1);
+    var k = 0.5;
+    if (t2 > k) t2 = k + (t2 - k) / t2;
+    var stringDrawDist = size * (0.5 - t2);
+    var arrowLength = size * 1.6;
 
-		// Bow arc
-		ctx.beginPath();
-		ctx.arc(x, y, size, a1, a2);
-		ctx.stroke();
-		ctx.closePath();
+    // Bow arc
+    ctx.beginPath();
+    ctx.arc(x, y, size, a1, a2);
+    ctx.stroke();
+    ctx.closePath();
 
-		// Bow string
-		ctx.beginPath();
-		ctx.moveTo(x + size * Math.cos(a1), y + size * Math.sin(a1));
-		ctx.lineTo(x + stringDrawDist * Math.cos(dir), y + stringDrawDist * Math.sin(dir));
-		ctx.lineTo(x + size * Math.cos(a2), y + size * Math.sin(a2));
-		ctx.stroke();
-		ctx.closePath();
+    // Bow string
+    ctx.beginPath();
+    ctx.moveTo(x + size * Math.cos(a1), y + size * Math.sin(a1));
+    ctx.lineTo(
+      x + stringDrawDist * Math.cos(dir),
+      y + stringDrawDist * Math.sin(dir)
+    );
+    ctx.lineTo(x + size * Math.cos(a2), y + size * Math.sin(a2));
+    ctx.stroke();
+    ctx.closePath();
 
-		// Arrow
-		ctx.beginPath();
-		ctx.moveTo(x + stringDrawDist * Math.cos(dir), y + stringDrawDist * Math.sin(dir));
-		ctx.lineTo(x + (stringDrawDist + arrowLength) * Math.cos(dir), y + (stringDrawDist + arrowLength) * Math.sin(dir));
-		ctx.stroke();
-		ctx.closePath();
+    // Arrow
+    ctx.beginPath();
+    ctx.moveTo(
+      x + stringDrawDist * Math.cos(dir),
+      y + stringDrawDist * Math.sin(dir)
+    );
+    ctx.lineTo(
+      x + (stringDrawDist + arrowLength) * Math.cos(dir),
+      y + (stringDrawDist + arrowLength) * Math.sin(dir)
+    );
+    ctx.stroke();
+    ctx.closePath();
 
-		setFillStyle(fs);
-		setLineWidth(lw);
-		setStrokeStyle(ss);
-	}
+    setFillStyle(fs);
+    setLineWidth(lw);
+    setStrokeStyle(ss);
+  }
 }
 
 class Shotgun extends AmmoBasedWeapon {
-	constructor(owner) {
-		super(owner);
-		this.damage = 2;
-		this.shots = 20;
-		this.accuracy = 0.5;
-		this.speedPenalty = 0.7;
-		this.maxAmmo = 3;
-		this.ammo = 3;
-		this.reloadTime = 2500;
-		this.isCocked = true;
-	}
+  constructor(owner) {
+    super(owner);
+    this.damage = 2;
+    this.shots = 20;
+    this.accuracy = 0.5;
+    this.speedPenalty = 0.7;
+    this.maxAmmo = 3;
+    this.ammo = 3;
+    this.reloadTime = 2500;
+    this.isCocked = true;
+  }
 
-	fire() {
-		var player = this.owner;
-		for (var i = 0; i < this.shots; i++) {
-			var proj = new Projectile(player.x, player.y, 7000 * (0.5 + Math.random() / 2), player.shootDir + (-0.5 + Math.random()) * Math.PI * (1 - this.accuracy), player)
-			proj.damage = this.damage;
-			proj.knockbackCoeff = 0.17
-			proj.fxn = 0.8
-			game.registerProjectile(proj)
-		}
-		this.isCocked = false;
-		super.fire();
-	}
+  fire() {
+    var player = this.owner;
+    for (var i = 0; i < this.shots; i++) {
+      var proj = new Projectile(
+        player.x,
+        player.y,
+        7000 * (0.5 + Math.random() / 2),
+        player.shootDir +
+          (-0.5 + Math.random()) * Math.PI * (1 - this.accuracy),
+        player
+      );
+      proj.damage = this.damage;
+      proj.knockbackCoeff = 0.17;
+      proj.fxn = 0.8;
+      game.registerProjectile(proj);
+    }
+    this.isCocked = false;
+    super.fire();
+  }
 
-	charge(dt) {
-		if (!this.isCocked) {
-			return;
-		}
+  charge(dt) {
+    if (!this.isCocked) {
+      return;
+    }
 
-		super.charge(dt);
-	}
+    super.charge(dt);
+  }
 
-	release(dt) {
-		this.isCocked = true;
-	}
+  release(dt) {
+    this.isCocked = true;
+  }
 }
 
 class SubMachineGun extends AmmoBasedWeapon {
-	constructor(owner) {
-		super(owner);
-		this.damage = 0.35;
-		this.maxAmmo = 90;
-		this.ammo = 90;
-		this.rof = 10;
-		this.reloadTime = 2500;
-		this.accuracy = 0.95;
-		this.projectileSpeed = 4000
-		this.speedPenalty = 1.4
-	}
+  constructor(owner) {
+    super(owner);
+    this.damage = 0.35;
+    this.maxAmmo = 90;
+    this.ammo = 90;
+    this.rof = 10;
+    this.reloadTime = 2500;
+    this.accuracy = 0.95;
+    this.projectileSpeed = 4000;
+    this.speedPenalty = 1.4;
+  }
 
-	fire() {
-		for (var i = 0; i < this.rof; i++) {
-			var player = this.owner;
-			var offsetX = i * player.size / this.rof * Math.cos(player.shootDir);
-			var offsetY = i * player.size / this.rof * Math.sin(player.shootDir);
-			var proj = new PistolProjectile(player.x + offsetX, player.y + offsetY, this.projectileSpeed * (0.8 + Math.random() * 0.2), player.shootDir + (-0.5 + Math.random()) * Math.PI * (1 - this.accuracy), player)
-			proj.damage = this.damage
-			proj.knockbackCoeff = 0.01
-			proj.fxn = 1
-			game.registerProjectile(proj)
-			super.fire();
-		}
+  fire() {
+    for (var i = 0; i < this.rof; i++) {
+      var player = this.owner;
+      var offsetX = ((i * player.size) / this.rof) * Math.cos(player.shootDir);
+      var offsetY = ((i * player.size) / this.rof) * Math.sin(player.shootDir);
+      var proj = new PistolProjectile(
+        player.x + offsetX,
+        player.y + offsetY,
+        this.projectileSpeed * (0.8 + Math.random() * 0.2),
+        player.shootDir +
+          (-0.5 + Math.random()) * Math.PI * (1 - this.accuracy),
+        player
+      );
+      proj.damage = this.damage;
+      proj.knockbackCoeff = 0.01;
+      proj.fxn = 1;
+      game.registerProjectile(proj);
+      super.fire();
+    }
+  }
 
-	}
-
-	charge(dt) {
-		super.charge(dt);
-	}
+  charge(dt) {
+    super.charge(dt);
+  }
 }
 
 class Pistol extends AmmoBasedWeapon {
-	constructor(owner) {
-		super(owner);
-		this.damage = 9;
-		this.accuracy = 1;
-		this.speedPenalty = 0.85;
-		this.maxAmmo = 6;
-		this.ammo = 6;
-		this.reloadTime = 1500;
-		this.accuracyPenalty = 0
-		this.accuracyRecoveryRate = 0.04
-		this.flatAccuracyRecoveryRate = 0.001
-		this.minAccuracy = 0.3
-		this.isCocked = true;
-	}
+  constructor(owner) {
+    super(owner);
+    this.damage = 9;
+    this.accuracy = 1;
+    this.speedPenalty = 0.85;
+    this.maxAmmo = 6;
+    this.ammo = 6;
+    this.reloadTime = 1500;
+    this.accuracyPenalty = 0;
+    this.accuracyRecoveryRate = 0.04;
+    this.flatAccuracyRecoveryRate = 0.001;
+    this.minAccuracy = 0.3;
+    this.isCocked = true;
+  }
 
-	fire() {
-		var player = this.owner;
-		var effectiveAccuracy = Math.max(this.accuracy * (1 - this.accuracyPenalty), this.minAccuracy)
-		console.log("ea", effectiveAccuracy)
-		this.accuracyPenalty += Math.min(0.03 + 2.5 * this.accuracyPenalty, 100)
-		var dir = player.shootDir + (-0.5 + Math.random()) * Math.PI * (1 - effectiveAccuracy)
-		var proj = new PistolProjectile(player.x, player.y, 7000 * (0.9 + Math.random() * 0.1), dir, player)
-		proj.damage = this.damage;
-		proj.knockbackCoeff = 0.35
-		proj.fxn = 0.9
-		game.registerProjectile(proj)
-		this.isCocked = false;
-		super.fire();
-	}
+  fire() {
+    var player = this.owner;
+    var effectiveAccuracy = Math.max(
+      this.accuracy * (1 - this.accuracyPenalty),
+      this.minAccuracy
+    );
+    console.log("ea", effectiveAccuracy);
+    this.accuracyPenalty += Math.min(0.03 + 2.5 * this.accuracyPenalty, 100);
+    var dir =
+      player.shootDir +
+      (-0.5 + Math.random()) * Math.PI * (1 - effectiveAccuracy);
+    var proj = new PistolProjectile(
+      player.x,
+      player.y,
+      7000 * (0.9 + Math.random() * 0.1),
+      dir,
+      player
+    );
+    proj.damage = this.damage;
+    proj.knockbackCoeff = 0.35;
+    proj.fxn = 0.9;
+    game.registerProjectile(proj);
+    this.isCocked = false;
+    super.fire();
+  }
 
-	charge(dt) {
-		if (!this.isCocked) {
-			return;
-		}
-		super.charge(dt);
-	}
+  charge(dt) {
+    if (!this.isCocked) {
+      return;
+    }
+    super.charge(dt);
+  }
 
-	release(dt) {
-		this.isCocked = true;
-	}
+  release(dt) {
+    this.isCocked = true;
+  }
 
-	tick(dt) {
-		super.tick(dt)
-		this.accuracyPenalty = Math.max(0, this.accuracyPenalty * (1 - this.accuracyRecoveryRate) - this.flatAccuracyRecoveryRate)
-	}
+  tick(dt) {
+    super.tick(dt);
+    this.accuracyPenalty = Math.max(
+      0,
+      this.accuracyPenalty * (1 - this.accuracyRecoveryRate) -
+        this.flatAccuracyRecoveryRate
+    );
+  }
 
-	render() {
-		super.render()
-		var player = this.owner
-		setFillStyle("white")
-		ctx.beginPath()
-		ctx.arc(player.x, player.y, player.size * Math.min(this.accuracyPenalty, 3) / 6, 0, Math.PI * 2)
-		ctx.fill()
-		ctx.closePath()
-	}
-
+  render() {
+    super.render();
+    var player = this.owner;
+    setFillStyle("white");
+    ctx.beginPath();
+    ctx.arc(
+      player.x,
+      player.y,
+      (player.size * Math.min(this.accuracyPenalty, 3)) / 6,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+    ctx.closePath();
+  }
 }
+
 /*
 Weapons.SplitBow = {
 	name: "Split Bow",

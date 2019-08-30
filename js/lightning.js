@@ -1,60 +1,78 @@
 class Lightning {
-    constructor(start, end, resolution, forking, size) {
-        this.start = start;
-        this.end = end;
-        this.resolution = resolution || 10;
-        this.colour = "white";
-        this.forking = forking;
-        this.size = size;
-        if (forking === undefined) {
-            this.forking = 1;
-        }
-        if (forking === undefined) {
-            this.size = 1;
-        }
-        this.sub = [];
-        this.draw = function() {
-            var tmp = ctx.lineWidth;
-            if (this.sub.length === 0) {
-                //draw this
-                ctx.beginPath();
-                ctx.lineWidth = this.size;
-                ctx.strokeStyle = this.colour;
-                ctx.moveTo(this.start.x, this.start.y);
-                ctx.lineTo(this.end.x, this.end.y);
-                ctx.stroke();
-                //ctx.closePath();
-            }
-            else {
-                this.sub.forEach(function(item) {
-                    item.draw();
-                });
-            }
-            ctx.lineWidth = tmp;
-        };
-        this.generate = function() {
-            var length = this.start.sub(this.end).len();
-            if (length > this.resolution) {
-                //pick a random point in between, split sub
-                var dv = this.end.sub(this.start).mul(Math.random() * 0.5 + 0.25);
-                //console.log("dv", dv);
-                var normal = dv.getNormalVector().getUnitVector().mul((Math.random() - 0.5) * length * 0.1);
-                //console.log("normal", normal);
-                var np = dv.add(normal).add(this.start);
-                //console.log("np", np);
-                //console.log(this.start.y, np.y, this.end.y);
-                this.sub.push(new Lightning(this.start, np, resolution, this.forking, this.size));
-                this.sub.push(new Lightning(np, this.end, resolution, this.forking, this.size));
-                if (this.forking > 0) {
-                    if (Math.random() > (this.resolution / (length + 1) + 0.75) && Math.random() < this.forking) {
-                        this.sub.push(new Lightning(this.start, dv.add(normal.mul(5)).add(this.start), this.resolution, this.forking, this.size * 0.95));
-                    }
-                }
-            }
-        };
-        this.generate();
+  constructor(start, end, resolution, forking, size) {
+    this.start = start;
+    this.end = end;
+    this.resolution = resolution || 10;
+    this.colour = "white";
+    this.forking = forking;
+    this.size = size;
+    if (forking === undefined) {
+      this.forking = 1;
     }
+    if (forking === undefined) {
+      this.size = 1;
+    }
+    this.sub = [];
+    this.draw = function() {
+      var tmp = ctx.lineWidth;
+      if (this.sub.length === 0) {
+        //draw this
+        ctx.beginPath();
+        ctx.lineWidth = this.size;
+        ctx.strokeStyle = this.colour;
+        ctx.moveTo(this.start.x, this.start.y);
+        ctx.lineTo(this.end.x, this.end.y);
+        ctx.stroke();
+        //ctx.closePath();
+      } else {
+        this.sub.forEach(function(item) {
+          item.draw();
+        });
+      }
+      ctx.lineWidth = tmp;
+    };
+    this.generate = function() {
+      var length = this.start.sub(this.end).len();
+      if (length > this.resolution) {
+        //pick a random point in between, split sub
+        var dv = this.end.sub(this.start).mul(Math.random() * 0.5 + 0.25);
+        //console.log("dv", dv);
+        var normal = dv
+          .getNormalVector()
+          .getUnitVector()
+          .mul((Math.random() - 0.5) * length * 0.1);
+        //console.log("normal", normal);
+        var np = dv.add(normal).add(this.start);
+        //console.log("np", np);
+        //console.log(this.start.y, np.y, this.end.y);
+        this.sub.push(
+          new Lightning(this.start, np, resolution, this.forking, this.size)
+        );
+        this.sub.push(
+          new Lightning(np, this.end, resolution, this.forking, this.size)
+        );
+        if (this.forking > 0) {
+          if (
+            Math.random() > this.resolution / (length + 1) + 0.75 &&
+            Math.random() < this.forking
+          ) {
+            this.sub.push(
+              new Lightning(
+                this.start,
+                dv.add(normal.mul(5)).add(this.start),
+                this.resolution,
+                this.forking,
+                this.size * 0.95
+              )
+            );
+          }
+        }
+      }
+    };
+    this.generate();
+  }
 }
+
 /*
 var lightnings=[];
 var lightningCount = 1;
